@@ -1,0 +1,166 @@
+
+R version 3.1.1 (2014-07-10) -- "Sock it to Me"
+Copyright (C) 2014 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Purpose: Crack open LSMS data, offset GPS, and plot a bit and look at spat. corr.
+> # Author: Tim Essam (GeoCenter / OakStream Systems, LLC)
+> # Required packages: lots of spatial package
+> # Date: 2/23/2015
+> 
+> # Clear the workspace
+> remove(list=ls())
+> 
+> # load libraries for use in tinkering with data
+> libs <- c ("geoR", "akima", "leaflet", "dplyr", "lattice",
++            "sp", "maptools", "raster", "rgdal", "maps", "mapdata",
++            "RgoogleMaps", "mapproj", "RColorBrewer", "ape")
+> 
+> # Load required libraries
+> lapply(libs, require, character.only=T)
+Loading required package: geoR
+Loading required package: sp
+Loading required package: MASS
+--------------------------------------------------------------
+ Analysis of geostatistical data
+ For an Introduction to geoR go to http://www.leg.ufpr.br/geoR
+ geoR version 1.7-4.1 (built on 2012-06-29) is now loaded
+--------------------------------------------------------------
+
+Loading required package: akima
+Loading required package: leaflet
+Loading required package: dplyr
+
+Attaching package: 'dplyr'
+
+The following object is masked from 'package:MASS':
+
+    select
+
+The following object is masked from 'package:stats':
+
+    filter
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+Loading required package: lattice
+Loading required package: maptools
+Checking rgeos availability: FALSE
+ 	Note: when rgeos is not available, polygon geometry 	computations in maptools depend on gpclib,
+ 	which has a restricted licence. It is disabled by default;
+ 	to enable gpclib, type gpclibPermit()
+Loading required package: raster
+
+Attaching package: 'raster'
+
+The following object is masked from 'package:dplyr':
+
+    select
+
+The following objects are masked from 'package:MASS':
+
+    area, select
+
+Loading required package: rgdal
+rgdal: version: 0.9-1, (SVN revision 518)
+Geospatial Data Abstraction Library extensions to R successfully loaded
+Loaded GDAL runtime: GDAL 1.11.0, released 2014/04/16
+Path to GDAL shared files: C:/Users/t/Documents/R/win-library/3.1/rgdal/gdal
+GDAL does not use iconv for recoding strings.
+Loaded PROJ.4 runtime: Rel. 4.8.0, 6 March 2012, [PJ_VERSION: 480]
+Path to PROJ.4 shared files: C:/Users/t/Documents/R/win-library/3.1/rgdal/proj
+Loading required package: maps
+Loading required package: mapdata
+Loading required package: RgoogleMaps
+Loading required package: mapproj
+Loading required package: RColorBrewer
+Loading required package: ape
+[[1]]
+[1] TRUE
+
+[[2]]
+[1] FALSE
+
+[[3]]
+[1] TRUE
+
+[[4]]
+[1] TRUE
+
+[[5]]
+[1] TRUE
+
+[[6]]
+[1] TRUE
+
+[[7]]
+[1] TRUE
+
+[[8]]
+[1] TRUE
+
+[[9]]
+[1] TRUE
+
+[[10]]
+[1] TRUE
+
+[[11]]
+[1] FALSE
+
+[[12]]
+[1] TRUE
+
+[[13]]
+[1] TRUE
+
+[[14]]
+[1] TRUE
+
+[[15]]
+[1] FALSE
+
+There were 12 warnings (use warnings() to see them)
+> 
+> # Set working directory to Ethiopia project
+> wdw <- c("U:/Ethiopia/Export")
+> wdh <- c("c:/Users/t/Documents/Uganda/Export")
+> setwd(wdh)
+> 
+> # Read in data; subset GPS info and jitter for no overlap
+> d <- read.csv("UgandaGeo.csv", header=TRUE)
+> 
+> #Drop records with missing lat/lon values
+> d <- na.omit(d)
+> 
+> # Use geoR package to jitter the stacked coordinates
+> gps <- subset(d, select = c(longitude, latitude))
+> jitgps <- jitter2d(gps, max=0.01)
+> 
+> # Subset data to be recobined with GIS info
+> data <- subset(d, select = c(hid))
+> geo <- cbind(jitgps, data)
+> 
+> # Export jittered data to GIS/export folder
+> write.csv(geo, "GPSjitter.csv")
+> 
+> 
+> proc.time()
+   user  system elapsed 
+   3.92    0.40    4.54 
