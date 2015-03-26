@@ -20,11 +20,8 @@ wdh <- c("c:/Users/Tim/Documents/UgandaPanel/Export")
 setwd(wdh)
 
 # Read in data; subset GPS info and jitter for no overlap
-d <- read.csv("UgandaGeo2009.csv", header=TRUE)
-
-#Drop records with missing lat/lon values
-d <- na.omit(d)
-
+d <- read.csv("UgandaGeo2010.csv", header=TRUE)
+d$hh <- d$HHID
 
 # Rename lat lon variables
 names(d)[names(d) == "lat_mod"] <- "latitude"
@@ -32,19 +29,21 @@ names(d)[names(d) == "lon_mod"] <- "longitude"
 
 # Use geoR package to jitter the stacked coordinates
 gps <- subset(d, select = c(longitude, latitude))
+gps <- na.omit(gps)
 jitgps <- jitter2d(gps, max=0.01)
 
-# Rename gps coordinates to reflect stacked nature
-names(gps)[names(gps) == "longitude"] <- "lon_stack"
-names(gps)[names(gps) == "latitude"] <- "lat_stack"
-                      
 # Subset data to be recobined with both sets of GIS info
-data <- subset(d, select = c(hh))
-geo <- cbind(jitgps, gps, data)
+data <- subset(d, select = c(hh, longitude, latitude))
+data <- na.omit(data)
+names(data)[names(data) == "latitude"] <- "lat_stack"
+names(data)[names(data) == "longitude"] <- "lon_stack"
+
+# Combine both sets of data
+geo <- cbind(jitgps, data)
 
 # Add in a year for identification when merging in Stata
-geo$year <- rep(2009, dim(geo)[1])
+geo$year <- rep(2010, dim(geo)[1])
 
 # Export jittered data to GIS/export folder
-write.csv(geo, "GPSjitter2009.csv")
+write.csv(geo, "GPSjitter2010.csv")
 

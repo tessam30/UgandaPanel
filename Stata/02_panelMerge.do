@@ -41,9 +41,14 @@ save "$pathout/Uganda12_all.dta", replace
 
 * Append all the data together
 append using "$pathout\Uganda11_all.dta" "$pathout\Uganda10_all.dta", generate(_append) force
-
+set more off
 tab district
 
+bys hh: gen pCount = _N
+la var pCount "Number of waves hh is present"
+
+* Merge in the 2009 Panel GPS data (with jittered offsets)
+merge m:1 hh using "$pathout/Geovars2009"
 
 
 xtset hh year
