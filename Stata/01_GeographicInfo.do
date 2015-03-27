@@ -14,9 +14,6 @@ capture log close
 log using "$pathlog/01_GeographicInfo", replace
 
 * First, just try appending all hh together
-
-
-
 local geolist _0910 _1011 _1112
 local i = 1
 local j = 2009
@@ -32,7 +29,44 @@ foreach x of local geolist {
 	local j = `j' + 1
 }	
 *end
-	
+
+* Load 2009 temp file and merge with other waves
+use "`temp1'", clear
+append using "`temp2'"
+append using "`temp3'"
+
+* Use the mode value of GPS coordinates to create new lat/lon vars to be jittered in R
+egen lat_stack = mode(lat_mod), by(hh) minmode
+egen lon_stack = mode(lon_mod), by(hh) minmode 
+la var lat_stack "Latitude in degrees (wgs84)"
+la var lon_stack "Longitude in degrees (wgs84)"
+
+* Check households that were missing in one wave but not another
+tempvar temp4
+g byte `temp4' = (lat_mod == . & lat_stack!=.)
+egen gpsCheck = max(`temp4'), by(HHID)
+
+* Sort the data and list them to screen (less than 1%)
+sort hh year
+order lat* gpsCheck
+set more off
+clist lat_mod lat_stack lon_stack lon_mod hh_status if gpsCheck == 1, noo
+la var gpsCheck "GPS coordinates may not be consistent over time"
+tab gpsCheck
+
+* Export a cut of data to be jittered in R
+preserve
+keep hh lat_stack lon_stack year
+drop if lat_stack == .
+sort hh year
+order hh year lat_stack lon_stack
+bys hh: g ptrack = _N 
+export delimited "$pathexport/GeovarsPanel.csv", replace
+restore
+
+bob
+
+
 
 
 
@@ -119,5 +153,5 @@ clonevar hh = hhid
 merge 1:1 hh using "`temp1'"
 drop lat_mod lon_mod
 
-append
+
 
