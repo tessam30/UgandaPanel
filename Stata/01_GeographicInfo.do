@@ -48,7 +48,7 @@ egen gpsCheck = max(`temp4'), by(HHID)
 
 * Sort the data and list them to screen (less than 1%)
 sort hh year
-order lat* gpsCheck
+order hh year lat* lon* gpsCheck
 set more off
 clist lat_mod lat_stack lon_stack lon_mod hh_status if gpsCheck == 1, noo
 la var gpsCheck "GPS coordinates may not be consistent over time"
@@ -59,22 +59,13 @@ preserve
 keep hh lat_stack lon_stack year
 drop if lat_stack == .
 sort hh year
-order hh year lat_stack lon_stack
+order hh year lat_stack lon_stack 
 bys hh: g ptrack = _N 
 export delimited "$pathexport/GeovarsPanel.csv", replace
 restore
 
-bob
-
-
-
-
-
-
-
-
-
-
+* Save the data for merging
+save "$pathout/GeovarsPanel.dta", replace
 
 /* NOTE: ENSURE THE R FILE GPSjitter.R has been executed and merge file exists.
 Use the windows shell to execute the R file (may only work on laptops). */
@@ -83,7 +74,7 @@ cd $pathR
 qui: shell "C:\Program Files\R\R-3.0.2\bin\R.exe" CMD BATCH GPSjitter.R
 
 * Verify shell command generated correct file
-qui local required_file GPSjitter2009
+qui local required_file GeovarsPanel
 foreach x of local required_file { 
 	 capture findfile `x'.csv, path($pathexport)
 		if _rc==601 {
@@ -95,63 +86,21 @@ foreach x of local required_file {
 	}
 *end
 
-* Load the .csv and merge with other geographic variables
-import delimited "$pathexport/GPSjitter2009.csv", clear 
-la var longitude "HH longitude"
-la var latitude  "HH latitude"
-la var lon_stack "HH longitude stacked"
-la var lat_stack "HH latitude stacked"
-la var hh "household id"
-la var year "year"
-drop v1
-
-tempfile temp1
-save "`temp1'"
-
-import delimited "$pathexport/UgandaGeo2009.csv", clear
-merge 1:1 hh using "`temp1'"
-drop lat_mod lon_mod
-
-save "$pathout/Geovars2009.dta", replace
-
-***********************
-* format 2010 geo data *
-************************
 clear
-cd $pathR
-*qui: shell "C:\Program Files\R\R-3.1.1\bin\x64\R.exe" CMD BATCH GPSjitter.R
-qui: shell "C:\Program Files\R\R-3.0.2\bin\R.exe" CMD BATCH GPSjitter2010.R
-
-* Verify shell command generated correct file
-qui local required_file GPSjitter2010
-foreach x of local required_file { 
-	 capture findfile `x'.csv, path($pathexport)
-		if _rc==601 {
-			noi disp in red "Please verify `x'.csv file exists. Execute GPSjitter.R script."
-			* Create an exit conditions based on whether or not file is found.
-			if _rc==601 exit = 1
-		}
-		else display in yellow "File exists, continue with merge."
-	}
-*end
-
-* Load the .csv and merge with other geographic variables
-import delimited "$pathexport/GPSjitter2010.csv", clear 
+import delimited "$pathexport/GPSjitterPanel.csv", clear 
 la var longitude "HH longitude"
 la var latitude  "HH latitude"
 la var lon_stack "HH longitude stacked"
 la var lat_stack "HH latitude stacked"
-la var hh "household id"
 la var year "year"
+la var hh "household id across panels"
+la var ptrack "panel tracker"
 drop v1
 
-tempfile temp1
-save "`temp1'", replace
+* Merge panel data 
+merge 1:1 hh year using "$pathout/GeovarsPanel.dta", gen(geo_merge)
+rename geo_merge missingGISinfo
 
-import delimited "$pathexport/UgandaGeo2010.csv", clear
-clonevar hh = hhid
-merge 1:1 hh using "`temp1'"
-drop lat_mod lon_mod
-
-
-
+sort hh year
+save "$pathout/GeovarsMerged.dta", replace
+capture erase "$pathout/GeovarsPanel.dta"

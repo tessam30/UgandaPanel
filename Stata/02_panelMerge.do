@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------
 # Name:		01_panelMerge
-# Purpose:	Merge the 2010, 2011, 2012 Uganda RIGA data
+# Purpose:	Merge the 2010, 2011, 2012 Uganda RIGA data and add geovars
 # Author:	Tim Essam, Ph.D.
 # Created:	03/24/2015
 # Owner:	USAID GeoCenter | OakStream Systems, LLC
@@ -47,10 +47,8 @@ tab district
 bys hh: gen pCount = _N
 la var pCount "Number of waves hh is present"
 
-* Merge in the 2009 Panel GPS data (with jittered offsets)
-merge m:1 hh using "$pathout/Geovars2009"
+* Merge in Panel GPS data created in 01_GeographicInfo file
+merge 1:1 hh year using "$pathout/GeovarsMerged.dta", gen(_mergePanel)
 
-
-xtset hh year
 
 
