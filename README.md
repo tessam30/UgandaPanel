@@ -2,8 +2,8 @@ Uganda
 ======
 This readme will be updated continually until the project ends.  
   
-*[Smoothed Food Consumption Scores Map][1] (red = low FCS; blue = high FCS)*
-<p><img src="https://cloud.githubusercontent.com/assets/5873344/6397200/27cba878-bdb1-11e4-98a0-d36f2b9cc81e.png" alt="Smoothed FCS using Empirical Bayesian Kriging. Source: GeoCenter" align="middle"></p>
+*[Uganda Panel Data][1] (Orange = Present in 3 waves; Green = Present in 2 waves; Yellow = Present in 1 wave)*
+<p><img src="https://cloud.githubusercontent.com/assets/5873344/6898326/7de7e184-d6c7-11e4-9d24-0a2ecb1453bc.png" alt="Source: GeoCenter using FAO RIGA Data from World Bank LSMS 2009/2010/2011" align="middle"></p>
 
 ===  
 *Disclaimer: The findings, interpretation, and conclusions expressed herein are those of the authors and do not necessarily reflect the views of United States Agency for International Development or the United States Government. All errors remain our own. Data from 2011/12 Uganda National Household Panel Survey.*  
