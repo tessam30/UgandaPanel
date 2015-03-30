@@ -2,7 +2,7 @@ Uganda
 ======
 This readme will be updated continually until the project ends.  
   
-*[Uganda Panel Data][1] (Orange = Present in 3 waves; Green = Present in 2 waves; Yellow = Present in 1 wave)*
+*Uganda Panel Data (Orange = Present in 3 waves; Green = Present in 2 waves; Yellow = Present in 1 wave)*
 <p><img src="https://cloud.githubusercontent.com/assets/5873344/6898326/7de7e184-d6c7-11e4-9d24-0a2ecb1453bc.png" alt="Source: GeoCenter using FAO RIGA Data from World Bank LSMS 2009/2010/2011" align="middle"></p>
 
 ===  
