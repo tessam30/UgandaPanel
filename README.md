@@ -1,4 +1,4 @@
-Uganda
+Uganda National Panel Survey Analysis Project
 ======
 This readme will be updated continually until the project ends.  
   
