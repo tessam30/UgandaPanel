@@ -1,7 +1,7 @@
 # Purpose: Crack open LSMS data, offset GPS, and plot a bit and look at spat. corr.
 # Author: Tim Essam (GeoCenter / OakStream Systems, LLC)
 # Required packages: lots of spatial package
-# Date: 2/23/2015
+# Date: 3/31/2015
 
 # Clear the workspace
 remove(list=ls())

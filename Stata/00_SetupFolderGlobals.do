@@ -58,10 +58,15 @@ foreach dir in `folders' {
 	if `r(confirmdir)'==170 {
 			mkdir "`dir'"
 			disp in yellow "`dir' successfully created."
+			
 		}
 	else disp as error "`dir' already exists. Skipped to next folder."
 }
 *end
+
+
+* Back up to main directory
+
 
 /*---------------------------------
 # Set Globals based on path above #
@@ -115,6 +120,26 @@ foreach dir in `subfolders' {
 	else disp as error "`dir' already exists. Skipped to next folder."
 }
 *end
+
+* Create sub-folders for waves of panel data in the data raw folder
+cd "$pathin"
+local folders d2009 d2010 d2011
+foreach dir in `folders' {
+	confirmdir "`dir'"
+	if `r(confirmdir)'==170 {
+			mkdir "`dir'"
+			disp in yellow "`dir' successfully created."
+		}
+	else disp as error "`dir' already exists. Skipped to next folder."
+}
+*end
+
+cd "$path
+local dir `c(pwd)'
+global wave1 "`dir'/Datain/d2009"
+global wave2 "`dir'/Datain/d2010"
+global wave3 "`dir'/Datain/d2011"
+
 
 /*------------------------------------------------------------
 # Manually copy raw data  into Datain Folder #

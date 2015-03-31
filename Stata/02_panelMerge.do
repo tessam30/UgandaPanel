@@ -19,7 +19,7 @@ merge 1:1 hh using "$pathin/Uganda10_HH_ADMIN.dta"
 drop _merge
 merge 1:1 hh using "$pathin/Uganda10_HH_INCOME.dta"
 drop _merge
-g year = 2010
+g year = 2009
 save "$pathout/Uganda10_all.dta", replace
 
 * Load in the 2011 data
@@ -27,7 +27,7 @@ clear
 u "$pathin/Uganda11_HHCHAR.dta"
 merge 1:1 hh using "$pathin/Uganda11_HH_ADMIN.dta", gen(_merge1)
 merge 1:1 hh using "$pathin/Uganda11_HH_INCOME.dta", force gen(_merge2)
-g year = 2011
+g year = 2010
 save "$pathout/Uganda11_all.dta", replace
 
 * Load in 2012 data
@@ -36,7 +36,7 @@ u "$pathin/Uganda12_HHCHAR.dta"
 merge 1:1 hh using "$pathin/Uganda12_HH_ADMIN.dta", gen(_merge1)
 merge 1:1 hh using "$pathin/Uganda12_HH_INCOME.dta", force gen(_merge2)
 drop _merge*
-g year = 2012
+g year = 2011
 save "$pathout/Uganda12_all.dta", replace
 
 * Append all the data together
@@ -49,6 +49,24 @@ la var pCount "Number of waves hh is present"
 
 * Merge in Panel GPS data created in 01_GeographicInfo file
 merge 1:1 hh year using "$pathout/GeovarsMerged.dta", gen(_mergePanel)
+order hh year
 
+xtset hh year
 
+* Fix up district names
+replace district = upper(district)
 
+* Main categories usually analyzled are:
+/* Income = agr_wge + nonagr_wge + crop1 + livestock + selfemp + transfer + other == totincome1 */
+
+* Designate 3 cuts of data to be explored in mapping software
+global part "p_ag p_nonag p_nonfarm p_offarm p_onfarm p_trans TLU_total"
+global share "sh1agr_wge sh1nonagr_wge sh1crop1 sh1livestock sh1selfemp sh1transfer sh1other"
+global ftype "fhh fmhh fshh lhh mhh divhh pcexp ptrack"
+
+keep hh year latitude longitude $part $share $ftype 
+
+* Retain only households surviving all three rounds of panel
+keep if ptrack == 3
+
+save "$pathout/RigaPanel.dta", replace
