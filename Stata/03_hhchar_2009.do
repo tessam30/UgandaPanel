@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
-# Name:		02_hhchar
+# Name:		03_hhchar_2009
 # Purpose:	Process household characteristics and education characteristics
 # Author:	Tim Essam
 # Created:	2015/2/26
@@ -11,7 +11,7 @@
 
 clear
 capture log close
-log using "$pathlog/02_hhchar", replace
+log using "$pathlog/03_hhchar_2009", replace
 di in yellow "`c(current_date)' `c(current_time)'"
 set more off
 
@@ -135,7 +135,7 @@ foreach x of local demo {
 /* Create intl. HH dependency ratio (age ranges appropriate for Bangladesh)
 # HH Dependecy Ratio = [(# people 0-14 + those 65+) / # people aged 15-64 ] * 100 # 
 The dependency ratio is defined as the ratio of the number of members in the age groups 
-of 0â€“14 years and above 60 years to the number of members of working age (15â€“60 years). 
+of 0Ã¢â‚¬â€œ14 years and above 60 years to the number of members of working age (15Ã¢â‚¬â€œ60 years). 
 The ratio is normally expressed as a percentage (data below are multiplied by 100 for pcts.*/
 g byte numDepRatio = (h2q8 < 15 | h2q8 > 64) & hhmemb == 1
 g byte demonDepRatio = numDepRatio != 1 & hhmemb == 1
@@ -189,7 +189,7 @@ la var ae "Adult equivalents in household"
 
 egen adultEquiv = total(ae), by(HHID)
 la var adultEquiv "Total adult equivalent units"
-bob
+
 * Ethnicity codes of household members - create mixed hh codes or homogenous hh
 * Codes found in UNPS2010.Household.Woman.Qx.Manual.pdf (pp. 132)
 la def eth 11 "Acholi" 12 "Alur" 13 "Baamba" 14 "Babukusu" 15 "Babwisi" /*
@@ -229,7 +229,7 @@ la var mixedEthN "type of mixed ethinicity household"
 ***********
 * Orphans *
 ***********
-g byte orphan = h3q2a == 3 & h3q5a == 3
+g byte orphan = h3q2 == 3 & h3q5 == 3
 egen orphanhh = total(orphan), by(HHID)
 la var orphan "hh member is an ophan"
 la var orphanhh "total number of orphans in hh"
@@ -294,12 +294,12 @@ la var pctmosNetGChild "Share of grandchildren using nets"
 ******************
 * Skipping meals *
 ******************
-g byte mealskip = (T6FQ13)==1 & T6FQ16 != 0 & hhmemb == 1
+/*g byte mealskip = (T6FQ13)==1 & T6FQ16 != 0 & hhmemb == 1
 egen totMealSkip = total(mealskip), by(HHID)
 g pctMealSkip = totMealSkip / hhsize
 la var pctMealSkip "Share of household skipping meals"
 la var mealskip "household member skipped meals"
-la var totMealSkip "number of household members skipping meals"
+la var totMealSkip "number of household members skipping meals" */
 
 ******************
 * Migration ties *
@@ -312,7 +312,7 @@ la var hhmignet "household migration network"
 **********************
 * Education outcomes *
 **********************
-/* Literacy is defined as oneâ€™s ability to read with understanding and to 
+/* Literacy is defined as oneÃ¢â‚¬â„¢s ability to read with understanding and to 
  write meaningfully in any language. */
 g byte literateHoh = h4q4 == 4 & hoh == 1
 g byte literateSpouse = h4q4 == 4 & h2q4 == 2 & hhmemb == 1
@@ -421,12 +421,12 @@ drop youthtmp under5tmp under15tmp under24tmp youth15to24tmp youth18to30tmp /*
 */ hhmig totSchoolExptmp
 
 * Retain only derived data for collapsing
-qui ds(h2q* h4* T6* T2* LocID gsecMerge h3q* _merge educ ae), not
+qui ds(h2q* h4* gsecMerge h3q* _merge educ ae), not
 keep `r(varlist)'
 
 preserve
 keep if hhmemb == 1
-save "$pathout/hhchar_ind.dta", replace
+save "$pathout/hhchar_ind_2009.dta", replace
 restore
 
 drop PID
@@ -449,7 +449,7 @@ sum
 mdesc
 replace pctMosNet = 0 if pctMosNet == .
 replace pctMosNetT = 0 if pctMosNetT == .
-replace pctMealSkip = 0 if pctMealSkip == .
+*replace pctMealSkip = 0 if pctMealSkip == .
 
 foreach x of varlist youth* under* {
 	replace `x' = 0 if `x' == .
@@ -463,13 +463,14 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 	}
 *end
 
-merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
+*merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
 
+g year = 2009
 * Save
-save "$pathout/hhchar.dta", replace
+save "$pathout/hhchar_2009.dta", replace
 
 * Keep a master file of only household id's for missing var checks
-use "$pathraw/GSEC2", replace
+use "$wave1/GSEC2", replace
 keep HHID PID
 save "$pathout/hhid.dta", replace
 
