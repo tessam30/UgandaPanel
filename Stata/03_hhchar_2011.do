@@ -135,7 +135,7 @@ foreach x of local demo {
 /* Create intl. HH dependency ratio (age ranges appropriate for Bangladesh)
 # HH Dependecy Ratio = [(# people 0-14 + those 65+) / # people aged 15-64 ] * 100 # 
 The dependency ratio is defined as the ratio of the number of members in the age groups 
-of 0â€“14 years and above 60 years to the number of members of working age (15â€“60 years). 
+of 0Ã¢â‚¬â€œ14 years and above 60 years to the number of members of working age (15Ã¢â‚¬â€œ60 years). 
 The ratio is normally expressed as a percentage (data below are multiplied by 100 for pcts.*/
 g byte numDepRatio = (h2q8 < 15 | h2q8 > 64) & hhmemb == 1
 g byte demonDepRatio = numDepRatio != 1 & hhmemb == 1
@@ -311,7 +311,7 @@ la var hhmignet "household migration network"
 **********************
 * Education outcomes *
 **********************
-/* Literacy is defined as oneâ€™s ability to read with understanding and to 
+/* Literacy is defined as oneÃ¢â‚¬â„¢s ability to read with understanding and to 
  write meaningfully in any language. */
 g byte literateHoh = h4q4 == 4 & hoh == 1
 g byte literateSpouse = h4q4 == 4 & h2q4 == 2 & hhmemb == 1
@@ -431,13 +431,13 @@ restore
 drop PID
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
-qui include "$pathdo2/copylabels.do"
+qui include "$pathdo/copylabels.do"
 
 qui ds(HHID), not
 collapse (max) `r(varlist)', by(HHID) 
 
 * Reapply variable lables & value labels
-qui include "$pathdo2/attachlabels.do"
+qui include "$pathdo/attachlabels.do"
 
 la val mixedEthN mixedEthN
 
@@ -462,8 +462,8 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 	}
 *end
 
-merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
-
+*merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
+g year = 2011
 * Save
 save "$pathout/hhchar_2011.dta", replace
 
