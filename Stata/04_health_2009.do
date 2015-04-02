@@ -78,10 +78,10 @@ tab hlthCons, gen(treatment)
 ds(PID h5* hlthCons medCostsI), not
 keep `r(varlist)'
 
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 * Recode distance to facilty to be great then 100
 recode distFacility (100/1500 = 100)
@@ -144,7 +144,7 @@ mdesc `r(varlist)'
 twoway (lowess stunted ageMonths, mean adjust bwidth(0.75)) /*
 */ (lowess wasted ageMonths, mean adjust bwidth(0.75)) /*
 */ (lowess underwgt ageMonths, mean adjust bwidth(0.75)),  /*
-*/ xlabel(0(6)60,  labsize(small)) title("Child Nutrition Outcomes: 2009 (unweighted)"
+*/ xlabel(0(6)60,  labsize(small)) title("Child Nutrition Outcomes: 2009 (unweighted)")
 
 * child was/is breastfed & given vit A
 g byte breastFed = (h6q06 == 1)
@@ -179,7 +179,7 @@ foreach x of local malnu {
 *end
 
 * Collapse down to hh level keeping only major indicators
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 #delimit ; 
 	collapse (mean) stunting underweight wasting BMI
 	(max) stuntedCount pctstunted underwgtCount 
@@ -188,7 +188,7 @@ qui include "$pathdo/copylabels.do"
 	childDiarrheaCount pctchildDiarrhea childUnd5,
 	by(HHID) fast;
 #delimit cr
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 merge 1:1 HHID using "$pathout/healthtmp_2009.dta"
 replace childUnd5 = 0 if childUnd5 == .

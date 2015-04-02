@@ -140,7 +140,7 @@ foreach x of local demo {
 /* Create intl. HH dependency ratio (age ranges appropriate for Bangladesh)
 # HH Dependecy Ratio = [(# people 0-14 + those 65+) / # people aged 15-64 ] * 100 # 
 The dependency ratio is defined as the ratio of the number of members in the age groups 
-of 0Ã¢â‚¬â€œ14 years and above 60 years to the number of members of working age (15Ã¢â‚¬â€œ60 years). 
+of 14 years and above 60 years to the number of members of working age (15 - 60 years). 
 The ratio is normally expressed as a percentage (data below are multiplied by 100 for pcts.*/
 g byte numDepRatio = (h2q8 < 15 | h2q8 > 64) & hhmemb == 1
 g byte demonDepRatio = numDepRatio != 1 & hhmemb == 1
@@ -439,13 +439,13 @@ restore
 drop PID
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 
 qui ds(HHID), not
 collapse (max) `r(varlist)', by(HHID) 
 
 * Reapply variable lables & value labels
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 la val mixedEthN mixedEthN
 
@@ -471,13 +471,14 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 *end
 
 *merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
-g year = 2011
+g year = 2010
 * Save
 save "$pathout/hhchar_2010.dta", replace
 
 * Keep a master file of only household id's for missing var checks
 use "$wave2/GSEC2", replace
 keep HHID PID
+g year = 2010
 save "$pathout/hhid_2010.dta", replace
 
 * Create an html file of the log for internet sharability

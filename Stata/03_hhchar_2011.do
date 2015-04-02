@@ -431,13 +431,13 @@ restore
 drop PID
 * Collapse everything down to HH-level using max values for all vars
 * Copy variable labels to reapply after collapse
-qui include "$pathdo/copylabels.do"
+qui include "$pathdo2/copylabels.do"
 
 qui ds(HHID), not
 collapse (max) `r(varlist)', by(HHID) 
 
 * Reapply variable lables & value labels
-qui include "$pathdo/attachlabels.do"
+qui include "$pathdo2/attachlabels.do"
 
 la val mixedEthN mixedEthN
 
@@ -470,6 +470,7 @@ save "$pathout/hhchar_2011.dta", replace
 * Keep a master file of only household id's for missing var checks
 use "$wave3/GSEC2", replace
 keep HHID PID
+g year = 2011
 save "$pathout/hhid_2011.dta", replace
 
 * Create an html file of the log for internet sharability
