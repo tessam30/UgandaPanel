@@ -67,6 +67,35 @@ restore
 * Save the data for merging
 save "$pathout/GeovarsPanel.dta", replace
 
+* Merge in geographic information at higher levels
+u "$wave1/GSEC1.dta", clear
+keep HHID region urban regurb stratum wgt09wosplits wgt09 h1aq1
+ren h1aq1 dist_code
+gen year = 2009
+tempfile  tg2009 tg2010 tg2011
+save "`tg2009'"
+
+u "$wave2/GSEC1.dta", clear
+keep HHID region urban regurb stratum wgt10 h1aq1
+gen year = 2010 
+save "`tg2010'"
+
+u "$wave3/GSEC1.dta", clear
+keep HHID region urban regurb sregion h1aq1 mult HH_2005 h1aq1
+gen year = 2011
+
+append using "`tg2010'"
+append using "`tg2009'"
+
+*Fix region codes
+recode regurb (0/1 = 10)  
+recode region (0 = 1)
+replace h1aq1 = upper(h1aq1)
+replace h1aq1 = "KALANGALA" if h1aq1 == "KALANGA"
+replace h1aq1 = "MITYANA" if h1aq1 == "MIYANA"
+save "$pathout/geoadmin.dta", replace
+
+
 /* NOTE: ENSURE THE R FILE GPSjitter.R has been executed and merge file exists.
 Use the windows shell to execute the R file (may only work on laptops). */
 cd $pathR
@@ -102,5 +131,6 @@ merge 1:1 hh year using "$pathout/GeovarsPanel.dta", gen(geo_merge)
 rename geo_merge missingGISinfo
 
 sort hh year
+drop __000*
 save "$pathout/GeovarsMerged.dta", replace
 capture erase "$pathout/GeovarsPanel.dta"
