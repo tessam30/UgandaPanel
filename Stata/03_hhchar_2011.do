@@ -466,6 +466,14 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 g year = 2011
 * Save
 save "$pathout/hhchar_2011.dta", replace
+bob
+* Call custom program to append data and create year variable
+qui include "$pathdo2/pappend"
+pappend hhchar_2009 hhchar_2010 hhchar_2011 pa_hhchar
+
+save "$pathout/hhchar_all.dta", replace
+
+* Merge all waves of survey module
 
 * Keep a master file of only household id's for missing var checks
 use "$wave3/GSEC2", replace

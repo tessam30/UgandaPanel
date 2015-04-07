@@ -17,7 +17,7 @@ use "$wave1/GSEC15B.dta", replace
 
 * Fix observations who are missing ConsCategory information
 * Export missing to spreadsheet, use concatenate command to write commands and order
-tab itmcd if  ==., sort
+*tab itmcd if  ==., sort
 tab h15bq3b
 recode h15bq3b (0 = .) (8 = 7)
 
@@ -179,11 +179,12 @@ pwcorr FCS dietDiv, sig
 
 * Install super decode (scc install sdecode)
 sdecode hh, gen(HHID)
+g year = 2009
 
 save "$pathout/FCS_2009.dta", replace
 
 * Load module on fortified food consumption
-use "$wave1/GSEC15BB", replace
+use "$wave1/GSEC15BB", clear
 
 g byte foodFtfd = (h15bq14 == 1 & h15bq15 == 1)
 la var foodFtfd "HH consumed at least 1 fortified food"
@@ -242,6 +243,7 @@ ds(h17*), not
 keep `r(varlist)'
 
 recode foodLack (2 = 0)
+g year = 2009
 
 * Merge with other diet information data
 merge 1:1 HHID using "$pathout/fstmp_2009.dta", gen(_merge2)

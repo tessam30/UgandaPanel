@@ -13,7 +13,7 @@ install_github("smartinsightsformdata/rpivotTable")
 libs <- c ("geoR", "akima", "leaflet", "dplyr", "lattice",
            "sp", "maptools", "raster", "rgdal", "maps", "mapdata",
            "RgoogleMaps", "mapproj", "RColorBrewer", "ape", 
-           "haven", "rpivotTable")
+           "haven", "rpivotTable", "dplyr")
 
 # Load required libraries
 lapply(libs, require, character.only=T)
@@ -27,6 +27,12 @@ setwd(wdh)
 d <- read_dta("RigaPanel.dta")
 
 # ----- Use new pivot table package to visualize data
+rpivotTable(d, rows = "year", col = "fhh", aggregatorName = "Average",
+            vals = "pcexp", rendererName = "Treemap")
+
+# ----- Plot the data to see distributions in space
+dsub <- dplyr::select(d, -hh)
+dsub <- dplyr::filter(dsub, year = 2009)
 
 
 

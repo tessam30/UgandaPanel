@@ -5,7 +5,7 @@
 # Created:	2015/3/23
 # License:	MIT License
 # Ado(s):	labutil, labutil2 (ssc install labutil, labutil2), zscore06
-# Dependencies: copylables, attachlabels, 00_SetupFoldersGlobals.do
+# Dependencies: copylables, attachlabels, pappend, 00_SetupFoldersGlobals.do
 #-------------------------------------------------------------------------------
 */
 
@@ -195,8 +195,15 @@ merge 1:1 HHID using "$pathout/healthtmp_2011.dta"
 replace childUnd5 = 0 if childUnd5 == .
 erase "$pathout/healthtmp_2011.dta"
 
-
 * Save created data
 sa "$pathout/health_2011.dta", replace
+
+* Call custom program to append data and create year variable
+qui include "$pathdo2/pappend"
+pappend health_2009 health_2010 health_2011 pa_health
+
+sa "$pathout/health_all.dta", replace
+
+* Merge with panel data and drop annual data
 log2html "$pathlog/04_health_2011", replace
 capture log close

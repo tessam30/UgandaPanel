@@ -1,5 +1,5 @@
 /*-------------------------------------------------------------------------------
-# Name:		08_FCS_2010
+# Name:		08_FCS_2011
 # Purpose:	Create dietary diversity and food consumption scores for Uganda HH
 # Author:	Tim Essam, Ph.D.
 # Created:	10/31/2014; 02/19/2015.
@@ -10,34 +10,34 @@
 */
 clear
 capture log close
-log using "$pathlog/08_FCS_2010", replace
+log using "$pathlog/08_FCS_2011", replace
 set more off
 
-use "$wave2/GSEC15B.dta", replace
+use "$wave3/GSEC15B.dta", replace
 
 * Create a string variable of hh
-sdecode hh, gen(HHID)
+*sdecode hh, gen(HHID)
 
 * Fix observations who are missing ConsCategory information
 * Export missing to spreadsheet, use concatenate command to write commands and order
 tab itmcd if h15bq2c ==., sort
 tab h15bq3b, mi
 
-
 g foodcat = .
-replace foodcat = 11 if inlist(itmcd, 149, 153, 151, 156, 148, 152, 155, 154, 160)
 replace foodcat = 1 if inlist(itmcd, 113, 110, 114, 115, 116, 112, 111)
+replace foodcat = 2 if inlist(itmcd, 101, 108, 107, 105, 109, 103, 102, 106)
+replace foodcat = 3 if inlist(itmcd, 147)
+replace foodcat = 4 if inlist(itmcd, 141, 140, 162, 145)
+replace foodcat = 5 if inlist(itmcd, 144, 146, 143, 142, 163)
+replace foodcat = 6 if inlist(itmcd, 135, 136, 138, 137, 139, 166, 168, 165, 164, 167)
 replace foodcat = 7 if inlist(itmcd, 132, 171, 130, 170, 133, 134, 169, 131)
 replace foodcat = 8 if inlist(itmcd, 117, 123, 122, 124, 121, 119, 118, 120)
 replace foodcat = 9 if inlist(itmcd, 125, 126)
-replace foodcat = 5 if inlist(itmcd, 144, 146, 143, 142, 163)
 replace foodcat = 10 if inlist(itmcd, 150, 127, 128, 129)
+replace foodcat = 11 if inlist(itmcd, 149, 153, 151, 156, 148, 152, 155, 154, 160)
 replace foodcat = 12 if inlist(itmcd, 157, 158, 159, 161)
-replace foodcat = 4 if inlist(itmcd, 141, 140, 162, 145)
-replace foodcat = 2 if inlist(itmcd, 101, 108, 107, 105, 109, 103, 102, 106)
-replace foodcat = 3 if inlist(itmcd, 147)
-replace foodcat = 6 if inlist(itmcd, 135, 136, 138, 137, 139, 166, 168, 165, 164, 167)
 
+* Apply value labels to variables
 la def food 1 "Cereals and cereal products" 2 "Starches" 3 "Sugar and sweets" /*
 */ 4 "Pulses, dry" 5 "Nuts and seeds" 6 "Vegetables" 7 "Fruits" /*
 */ 8 "Meat, meat product, fish" 9 "Milk and milk products" 10 "Oil, Fats, Spices" /*
@@ -167,18 +167,11 @@ la var foodTag "FCS is zero due to data availability"
 recode FCS (0/10 = .)
 recode dietDiv (0 = .) 
 
-g year = 2010
-
-* Check correlation of FCS and Dietary Diversity
-twoway (lpolyci FCS dietDiv if foodTag!=1, /*
-*/fitplot(connected)), ytitle(Food Consumption Score) /*
-*/xtitle(Dietary Diversity) title(FCS & Dietary Diversity/*
-*/ Correlation) legend(order(1 "95% CI" 2 "Local Polynomial Smoothed")) scheme(mrc)
-
-save "$pathout/FCS_2010.dta", replace
+g year = 2011
+save "$pathout/FCS_2011.dta", replace
 
 * Load module on fortified food consumption
-use "$wave2/GSEC15BB", replace
+use "$wave3/GSEC15BB", replace
 
 g byte foodFtfd = (h15bq14 == 1 & h15bq15 == 1)
 la var foodFtfd "HH consumes fortified food"
@@ -203,15 +196,15 @@ collapse (max) `r(varlist)', by(HHID)
 qui include "$pathdo/attachlabels.do"
 
 * Merge with other food consumption data
-merge 1:1 HHID using "$pathout/FCS_2010.dta", gen(food_merge)
+merge 1:1 HHID using "$pathout/FCS_2011.dta", gen(food_merge)
 drop if food_merge ==1
 drop food_merge
 compress
 
-save "$pathout/fstmp_2010.dta", replace
+save "$pathout/fstmp_2011.dta", replace
 
 * Bring in food security information (pp 32)
-use "$wave2/GSEC17A.dta", clear
+use "$wave3/GSEC17A.dta", clear
 
 * Create baseic welfare indicators
 g byte clothing =  h17q2 == 1
@@ -224,7 +217,7 @@ g byte shoes = h17q4 == 1
 la var shoes "Every member has at least 1 pair of shoes"
 
 clonevar mealsTaken = h17q5
-recode mealsTaken (0 = .)
+recode mealsTaken (10 = .) (14 = .)
 
 clonevar saltShortage = h17q6
 clonevar bkfst_ychild = h17q7
@@ -237,15 +230,44 @@ ds(h17*), not
 keep `r(varlist)'
 
 recode foodLack (2 = 0)
-
+destring HHID, gen(hh)
 
 * Merge with other diet information data
-merge 1:1 HHID using "$pathout/fstmp_2010.dta"
+merge 1:1 HHID using "$pathout/fstmp_2011.dta"
 compress
-save "$pathout/foodSecurity_2010.dta", replace
-erase "$pathout/FCS_2010.dta"
-erase "$pathout/fstmp_2010.dta"
+save "$pathout/foodSecurity_2011.dta", replace
+erase "$pathout/FCS_2011.dta"
+erase "$pathout/fstmp_2011.dta"
+bob
 
+* Append FCS together to make panel
+qui include "$pathdo2/pappend"
+pappend foodSecurity_2009 foodSecurity_2010 foodSecurity_2011 pa_fs
+
+*end
+
+* Save merged data
+save "$pathout/FoodSecurity_all.dta", replace
+
+* Check missingness
+mdesc HHID year
+g byte misYear = (year == .)
+
+drop hh
+destring HHID, gen(hh)
+
+* Merge in administrative information
+merge 1:1 HHID year using "$pathout/GeovarsMerged.dta", gen(geo_merge)
+merge 1:1 HHID year using "$pathout/shocks_all.dta", gen(shock_merge)
+
+
+* Look at FCS and diet Diversity trends over the years
+twoway(histogram dietDiv), over(year)
+histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(year, cols(1))
+
+* Extra a core cut of data and variables to be visualized in R and/or ArcGIS
+global keepVars "FCS dietDiv FCS_categ nogps priceShk hazardShk employShk healthShk crimeShk assetShk incReduc goodcope badcope anyshock totShock"
+keep $keepVars HHID hh year latitude longitude 
 
 /* ---- EXTRA CODE FOR R PLOTS: To be updated;
 
@@ -300,5 +322,5 @@ export delimited "$pathexport/FCSGeo.csv", replace
 
 
 * Create an html file of the log for internet sharability
-log2html "$pathlog/08_FCS_2010", replace
+log2html "$pathlog/08_FCS_2011", replace
 log close

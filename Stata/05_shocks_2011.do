@@ -160,6 +160,12 @@ sum *Shk
 tab anyshock
 tab totShock
 
+count
+* Merge all shocks together
+append using "$pathout/shocks_2009.dta" "$pathout/shocks_2010.dta", gen(append_year)
+
+save "$pathout/shocks_all.dta", replace
+
 * ---- Extra Code 
 /*
 * Save shock data and merge with geovars
