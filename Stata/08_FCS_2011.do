@@ -238,13 +238,10 @@ compress
 save "$pathout/foodSecurity_2011.dta", replace
 erase "$pathout/FCS_2011.dta"
 erase "$pathout/fstmp_2011.dta"
-bob
 
-* Append FCS together to make panel
+* Append FCS together to make panel using custom program
 qui include "$pathdo2/pappend"
 pappend foodSecurity_2009 foodSecurity_2010 foodSecurity_2011 pa_fs
-
-*end
 
 * Save merged data
 save "$pathout/FoodSecurity_all.dta", replace
@@ -259,6 +256,8 @@ destring HHID, gen(hh)
 * Merge in administrative information
 merge 1:1 HHID year using "$pathout/GeovarsMerged.dta", gen(geo_merge)
 merge 1:1 HHID year using "$pathout/shocks_all.dta", gen(shock_merge)
+merge 1:1 HHID year using "$pathout/health_all.dta", gen(hlth_merge)
+merge 1:1 HHID year using "$pathout/hhchar_all.dta", gen(hhchar_merge)
 
 
 * Look at FCS and diet Diversity trends over the years

@@ -114,6 +114,13 @@ g year = 2011
 
 sa "$pathout/hhinfra_2011.dta", replace
 
+* Append FCS together to make panel using custom program
+qui include "$pathdo2/pappend"
+pappend hhinfra_2009 hhinfra_2010 hhinfra_2011 pa_inf
+
+
+sa "$pathout/hhinfra_all.dta", replace
+
 /* ---- NOT NECESSARY TO CONDUCT THIS AS RIGA HAS INDICES ALREADY!
 
 * Merge in geograhpic information for urban/rural distinction
