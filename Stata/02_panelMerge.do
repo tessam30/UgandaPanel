@@ -61,10 +61,12 @@ replace district = upper(district)
 
 * Designate 3 cuts of data to be explored in mapping software
 global part "p_ag p_nonag p_nonfarm p_offarm p_onfarm p_trans TLU_total"
+global assets "totagprod totagsold TLU_sheep TLU_pigs TLU_poultry TLU_donkey TLU_rabbit TLU_beehive TLU_cattle"
 global share "sh1agr_wge sh1nonagr_wge sh1crop1 sh1livestock sh1selfemp sh1transfer sh1other"
 global ftype "fhh fmhh fshh lhh mhh divhh pcexp ptrack"
+global assets2 "agwealth wealth landown landless toilet electricity infraindex infraindex_urb infraindex_natl urban weight comm crop1 crop2 livestock TLU_bulls TLU_cow TLU_calf safewater hhmignet"
 
-keep hh year latitude longitude $part $share $ftype 
+keep hh year latitude longitude $part $share $ftype $assets $assets2
 
 * Retain only households surviving all three rounds of panel
 keep if ptrack == 3

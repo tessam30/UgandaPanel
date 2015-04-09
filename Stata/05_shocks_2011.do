@@ -162,7 +162,19 @@ tab totShock
 
 count
 * Merge all shocks together
-append using "$pathout/shocks_2009.dta" "$pathout/shocks_2010.dta", gen(append_year)
+pappend shocks_2009 shocks_2010 shocks_2011 pa_shk
+
+* Create vulnerability metrics for number of shocks received overtime
+* Create a variable reflecting hazard schocks in all years
+local shklist price hazard employ health crime asset
+foreach x of local shklist {
+	egen `x'Shk_tot = total(`x'Shk), by(HHID)
+	la var `x'Shk_tot "Total `x' shocks across panel"
+}
+*end
+
+egen totShock_tot = total(totShock), by(HHID)
+la var totShock_tot "Total shocks across all shocks and panels"
 
 save "$pathout/shocks_all.dta", replace
 

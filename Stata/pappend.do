@@ -1,5 +1,4 @@
 * Create a simple function to append data from the panel.
-
 * Use: Function is called anytime three datasets are merged together
 
 capture program drop pappend

@@ -246,27 +246,7 @@ pappend foodSecurity_2009 foodSecurity_2010 foodSecurity_2011 pa_fs
 * Save merged data
 save "$pathout/FoodSecurity_all.dta", replace
 
-* Check missingness
-mdesc HHID year
-g byte misYear = (year == .)
 
-drop hh
-destring HHID, gen(hh)
-
-* Merge in administrative information
-merge 1:1 HHID year using "$pathout/GeovarsMerged.dta", gen(geo_merge)
-merge 1:1 HHID year using "$pathout/shocks_all.dta", gen(shock_merge)
-merge 1:1 HHID year using "$pathout/health_all.dta", gen(hlth_merge)
-merge 1:1 HHID year using "$pathout/hhchar_all.dta", gen(hhchar_merge)
-
-
-* Look at FCS and diet Diversity trends over the years
-twoway(histogram dietDiv), over(year)
-histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(year, cols(1))
-
-* Extra a core cut of data and variables to be visualized in R and/or ArcGIS
-global keepVars "FCS dietDiv FCS_categ nogps priceShk hazardShk employShk healthShk crimeShk assetShk incReduc goodcope badcope anyshock totShock"
-keep $keepVars HHID hh year latitude longitude 
 
 /* ---- EXTRA CODE FOR R PLOTS: To be updated;
 

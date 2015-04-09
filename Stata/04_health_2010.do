@@ -167,8 +167,12 @@ la var breastFed "Child was breastfed"
 la var childDiarrhea "Child had diarrhea in last 2 weeks"
 la var childFever "Child had fever in last 2 weeks"
 
-* Save child health information (Individual 
+* Save individual child information
+preserve
+ds(h6* h2*), not
+keep `r(varlist)'
 sa "$pathout/childHealth_I_2010.dta", replace
+restore
 
 * Create a variable counting the number of children under 60 months (5 years)
 bys HHID: g childUnd5 = _N

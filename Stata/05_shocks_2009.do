@@ -159,6 +159,60 @@ sum *Shk
 tab anyshock
 tab totShock
 
+* Export a cut for association analysis in R
+*preserve
+egen id = group(HHID year)
+keep priceShk hazardShk employShk healthShk crimeShk assetShk id year
+
+* Need to reshape data and keep only shocks experienced by hh and stack them
+local shk price hazard employ health crime asset
+local i = 1
+foreach x of local shk {
+	replace `x' = `i' if `x' == 1
+	la def `x' 0 "none" `i' "`x'" 
+	la val `x'Shk `x'
+	local i = `i'+1
+	}
+*end
+
+rename priceShk* *shk1
+rename hazardShk* *shk2
+rename employShk* *shk3
+rename healthShk* *shk4
+rename crimeShk* *shk5
+rename assetShk* *shk6
+drop year
+reshape long shk@, i(id) j(time)
+drop if shk == 0
+
+g shktype =""
+replace shktype = "price" if shk == 1
+replace shktype = "hazard" if shk == 2
+replace shktype = "employ" if shk == 3
+replace shktype = "health" if shk == 4
+replace shktype = "crime" if shk == 5
+replace shktype = "asset" if shk == 6
+
+keep shktype id
+
+* Export to pathexport for association analysis in R
+export delimited "$pathexport/shk_2009.csv", replace
+
+/* Association Analysis shows the following rules:
+  lhs         rhs         support confidence      lift
+1 {health} => {hazard} 0.08110176 0.34754098 0.4630337
+2 {hazard} => {health} 0.08110176 0.10805301 0.4630337
+3 {asset}  => {hazard} 0.06809487 0.62676056 0.8350419
+4 {hazard} => {asset}  0.06809487 0.09072375 0.8350419
+5 {crime}  => {hazard} 0.06044376 0.47023810 0.6265048
+6 {hazard} => {crime}  0.06044376 0.08053007 0.6265048
+
+But notice that the lift is rather low. 
+Recall lift = the increased likelihood of shock X being in the hh
+if shock Y is also in the household. 
+
+*/ 
+
 * ---- Extra Code 
 /*
 * Save shock data and merge with geovars

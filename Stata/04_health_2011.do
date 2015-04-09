@@ -89,6 +89,10 @@ recode distFacility (100/1500 = 100)
 * Save illness
 save "$pathout/healthtmp_2011.dta", replace
 
+* Append previous individual datasets and save
+pappend illness_I_2009 illness_I_2010 illness_I_2011 pa_ill
+save "$pathout/illness_I_all.dta", replace
+
 
 *******
 * MCH *
@@ -163,7 +167,11 @@ la var childDiarrhea "Child had diarrhea in last 2 weeks"
 la var childFever "Child had fever in last 2 weeks"
 
 * Save child health information (Individual 
+preserve
+ds(h6* h2* T6* T2*), not
+keep `r(varlist)'
 sa "$pathout/childHealth_I_2011.dta", replace
+restore
 
 * Create a variable counting the number of children under 60 months (5 years)
 bys HHID: g childUnd5 = _N
@@ -203,6 +211,15 @@ qui include "$pathdo2/pappend"
 pappend health_2009 health_2010 health_2011 pa_health
 
 sa "$pathout/health_all.dta", replace
+
+* Call custom program to append individual child data together
+* Append previous individual datasets and save
+
+pappend childHealth_I_2009 childHealth_I_2010 childHealth_I_2011 pa_ch
+sort HHID PID year
+egen persID = group(HHID PID)
+xtset persID year
+save "$pathout/childHealth_I_all.dta", replace
 
 * Merge with panel data and drop annual data
 log2html "$pathlog/04_health_2011", replace

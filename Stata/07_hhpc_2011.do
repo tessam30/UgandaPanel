@@ -17,7 +17,6 @@ set more off
 * Load the assets module
 use "$wave3/GSEC14.dta"
 
-
 g year = 2011
 * Merge in geographic information to use when taking median values for assets
 merge m:1 HHID year using "$pathout/geoadmin.dta"
@@ -143,6 +142,10 @@ scree
 
 *end
 save "$pathout/hhpc_2011.dta", replace
+
+* Append all data and bring together
+pappend hhpc_2009 hhpc_2010 hhpc_2011 pa_hhpc
+
 log2html "$pathlog/07_hhpc_2011", replace
 capture log close
 
