@@ -470,7 +470,13 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 	}
 *end
 
-*merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
+merge 1:1 HHID using "$wave2/GSEC1.dta", gen(gsec1_2010)
+ren year yearInt
+ren h1aq1 district10
+ren h1aq2 county10
+ren h1aq3 sub_county10
+ren h1aq4 parish10
+drop comm
 g year = 2010
 * Save
 save "$pathout/hhchar_2010.dta", replace

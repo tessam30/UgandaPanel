@@ -463,8 +463,8 @@ foreach x of varlist  educHoh educSpouse educAdult educAdultM educAdultF educHoh
 	}
 *end
 
-*merge 1:1 HHID using "$pathout/Geovars.dta", gen(geo_merge)
-
+merge 1:1 HHID using "$wave1/GSEC1.dta"
+drop comm
 g year = 2009
 * Save
 save "$pathout/hhchar_2009.dta", replace
