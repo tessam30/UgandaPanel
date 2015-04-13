@@ -472,12 +472,11 @@ ren h1aq4 parish
 ren comm commStr
 g year = 2011
 
-* Clean up mis-matched vars
-foreach x of varlist  district county sub_county parish {
-	replace `x' = `x'10 if year == 2010
-	drop `x'10
-	}
-*end
+save "$pathout/hhchar_2011.dta", replace
+
+* Call custom program to append data and create year variable
+qui include "$pathdo2/pappend"
+pappend hhchar_2009 hhchar_2010 hhchar_2011 pa_hhchar
 
 *Clean up 2009 vars
 replace county = h1aq2b
@@ -485,14 +484,15 @@ replace sub_county = h1aq3b
 replace parish = h1aq4b
 drop h1aq2b h1aq3b h1aq4b
 
+* Clean up mis-matched vars
+foreach x of varlist  county sub_county parish {
+	replace `x' = `x'10 if year == 2010
+	drop `x'10
+	}
+*end
 
-save "$pathout/hhchar_2011.dta", replace
-
-* Call custom program to append data and create year variable
-qui include "$pathdo2/pappend"
-pappend hhchar_2009 hhchar_2010 hhchar_2011 pa_hhchar
 save "$pathout/hhchar_all.dta", replace
-b
+
 * Merge all waves of survey module for individual hhchars
 pappend hhchar_ind_2009 hhchar_ind_2010 hhchar_ind_2011 pa_hhcharind
 save "$pathout/hhchar_ind_all.dta", replace

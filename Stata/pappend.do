@@ -29,8 +29,8 @@ set more off
 	tab year
 	
 	* Delete annual datasets to minimize disk space usage
-	erase "$pathout/`1'.dta"
-	erase "$pathout/`2'.dta"
-	erase "$pathout/`3'.dta"
+	*erase "$pathout/`1'.dta"
+	*erase "$pathout/`2'.dta"
+	*erase "$pathout/`3'.dta"
 
 end	

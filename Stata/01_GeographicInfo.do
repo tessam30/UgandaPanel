@@ -69,8 +69,9 @@ save "$pathout/GeovarsPanel.dta", replace
 
 * Merge in geographic information at higher levels
 u "$wave1/GSEC1.dta", clear
-keep HHID region urban regurb stratum wgt09wosplits wgt09 h1aq1
+keep HHID region urban regurb stratum wgt09wosplits wgt09 h1aq1 h1bq2b
 ren h1aq1 dist_code
+ren h1bq2b month2
 gen year = 2009
 tempfile  tg2009 tg2010 tg2011
 save "`tg2009'"
@@ -93,6 +94,7 @@ recode region (0 = 1)
 replace h1aq1 = upper(h1aq1)
 replace h1aq1 = "KALANGALA" if h1aq1 == "KALANGA"
 replace h1aq1 = "MITYANA" if h1aq1 == "MIYANA"
+ren h1aq1 district
 save "$pathout/geoadmin.dta", replace
 
 

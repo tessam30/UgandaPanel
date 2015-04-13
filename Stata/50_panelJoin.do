@@ -30,7 +30,20 @@ foreach x of local mfile {
 	}
 *end
 
+* order the data
 order mg*, last
+
+* month variable so we know when survey occured (for seasonal variables)
+replace month = month2 if month == .
+replace district = district10 if district==""
+replace district = upper(district)
+replace district = "MITYANA" if district == "MIYANA" 
+
+* Fix the geographic variables (districts and subregions)
+
+
+
+
 
 * Retain key variables of interest for exploring with R and ArcGIS
 global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount urban"
