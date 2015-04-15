@@ -174,6 +174,17 @@ g flaborShare = flabor/hhlabor
 recode flaborShare (. = 0) if hhlabor == 0
 la var flaborShare "share of working age females in hh"
 
+* % of hh females aged 20-34 & 35 - 59
+g byte fem20_34tmp = (h2q8>=20 &h2q8<35) & (female == 1 & hhmemb == 1)
+g byte fem35_59tmp = (h2q8>=35 &h2q8<60) & (female == 1 & hhmemb == 1)
+egen femCount20_34 = total(fem20_34tmp), by(HHID)
+egen femCount35_59 = total(fem35_59tmp), by(HHID)
+g femRatio20_34 = femCount20_34/hhsize
+g femRatio35_59 = femCount35_59/hhsize
+
+la var femRatio20_34 "Share of females in hh 20-34"
+la var femRatio35_59 "Share of females in hh 35-59"
+
 * Generate adult equivalents in household
 g male10 	= 1
 g fem10_19 	= 0.84

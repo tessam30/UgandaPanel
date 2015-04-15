@@ -125,4 +125,24 @@ drop if year==.
 encode HHID, gen(hhid)
 
 * Use value of lags within panel to fill in district names
-bysort HHID year: g districttest = district[_n-1] if dist2011[_n-1]==dist2011[_n]
+bysort HHID (year):	g byte fillTag = dist2011[1]== dist2011[2]
+
+* Replace district name from district variable
+clonevar distName = district
+bys HHID (year): replace distName = district[2] if district==""
+
+* Fix the sub-Region variables
+recode region (0 = 1)
+
+* Create a tag for splitoffs
+g byte splitOff_all = (spitoff10_11 == 1 | spitoff09_10 ==1)
+
+* Backfill sub-region information
+clonevar subRegion = sregion
+bysort HHID (year): replace subRegion = subRegion[3] if splitOff_all != 1
+
+* Create a new label set for subRegion values
+la def subreg 1 "Kampala" 2 "Central-1" 3 "Central-2" 4 "East-Central" /*
+*/ 5 "Eastern" 6 "Mid-North" 7 "North-East" 8 "West-Nile" 9 "Mid-West" 10 "Southwest"
+la val subRegion subreg
+

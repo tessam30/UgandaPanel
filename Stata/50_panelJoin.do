@@ -40,13 +40,13 @@ replace district = upper(district)
 replace district = "MITYANA" if district == "MIYANA" 
 
 * Fix the geographic variables (districts and subregions)
+include "$pathdo2/adminRecode.do"
 
-
-
+* Merge together with 
 
 
 * Retain key variables of interest for exploring with R and ArcGIS
-global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount urban"
+global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount urban month subRegion"
 global health2 "pctstunted underwgtCount pctunderwgt wastedCount pctwasted breastFedCount illness totIllness medCostspc"
 global hhchar "femhead agehead hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
 global edvars "educHoh educAdult quitEduchoh quitEducPreg marriedHohp under5 mlaborShare flaborShare literateHoh literateSpouse" 
@@ -77,9 +77,16 @@ drop hh
 ren hhid hh
 merge 1:1 hh year using "$pathout/RigaPanel.dta", gen(riga_mg)
 
+* Flag households that survive all three years
+g byte pFull = riga_mg == 3
+
 * fix jittered lat lons to be consistent overtime
-bys HHID (year): gen latCheck = 1 if (latitude == latitude[_n-1])
+bys HHID (year): g byte latCheck = (lat_stack[2] == lat_stack[1])
+bys HHID (year): replace latitude = latitude[1]
+bys HHID (year): replace longitude = longitude[1]
 
 sa "$pathout/RigaPanel_201504.dta", replace
+
+
 
 
