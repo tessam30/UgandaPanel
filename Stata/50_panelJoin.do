@@ -45,16 +45,38 @@ include "$pathdo2/adminRecode.do"
 * Check that the comm variable is available across waves
 egen commMin = min(comm), by(HHID)
 
+* Fix stratum variable for represantativeness and making R-plots
+clonevar stratumP = stratum
+
+/* Kampala - 1, Other Urban -2, Central Rural - 3, East rural - 4, North rural - 5
+   West rural - 6; 
+Use 2011 vars for region and urban to crosswalk these and downfill */
+bys HHID (year): replace stratumP = stratum[1] if stratumP==.
+
+* Replace rural zones
+replace stratumP = 3 if region == 1 & urban == 0
+replace stratumP = 4 if region == 2 & urban == 0
+replace stratumP = 5 if region == 3 & urban == 0
+replace stratumP = 6 if region == 4 & urban == 0
+
+* Replace other Urban (same as above except urban == 1)
+replace stratumP = 2 if region == 2 & urban == 1
+replace stratumP = 2 if region == 3 & urban == 1
+replace stratumP = 2 if region == 4 & urban == 1
+
+
 * Retain key variables of interest for exploring with R and ArcGIS
-global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount urban month subRegion stratum"
+global sampling "urban month subRegion stratum stratumP region urban latitude lat_stack longitude lon_stack HHID hh year"
+global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount "
 global health2 "pctstunted underwgtCount pctunderwgt wastedCount pctwasted breastFedCount illness totIllness medCostspc"
 global hhchar "femhead agehead hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
 global edvars "educHoh educAdult quitEduchoh quitEducPreg marriedHohp under5 mlaborShare flaborShare literateHoh literateSpouse" 
 global assets "electricity hutDwelling metalRoof latrineCovered latrineWash under5m under5f under15m under15f adultEquiv"
 global shocks "hazardShk priceShk employShk healthShk crimeShk assetShk anyshock totShock"
 global shock2 "priceShk_tot hazardShk_tot employShk_tot healthShk_tot crimeShk_tot assetShk_tot totShock_tot"
+global pcashock "ag aglow conflict drought disaster financial health other theft"
 
-keep $health $health2 $hhchar $edvars $assets $shocks $shock2 latitude lat_stack longitude lon_stack HHID hh year
+keep $sampling $health $health2 $hhchar $edvars $assets $shocks $shock2 $pcashock
 drop if latitude == .
 
 bys HHID: gen pwave = _N
@@ -68,8 +90,12 @@ save "$pathout/keyVars_201504.dta", replace
 
 * Look at FCS and diet Diversity trends over the years
 twoway(histogram FCS), by(year, cols(1))
-histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(year, cols(1))
+histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(stratumP, cols(2))
+histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(year, cols(2))
+histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(stratumP year, cols(2)) 
 
+
+* Look at dietary diversity over time
 graph box FCS, over(dietDiv) by(year, cols(3))
 
 * Merge with RIGA data

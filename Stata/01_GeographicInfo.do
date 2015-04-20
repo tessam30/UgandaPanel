@@ -69,7 +69,8 @@ save "$pathout/GeovarsPanel.dta", replace
 
 * Merge in geographic information at higher levels
 u "$wave1/GSEC1.dta", clear
-keep HHID region urban regurb stratum wgt09wosplits wgt09 h1aq1 h1bq2b
+keep HHID region urban regurb stratum wgt09wosplits wgt09 h1aq1 h1bq2b comm
+destring comm, replace
 ren h1aq1 dist_code
 ren h1bq2b month2
 gen year = 2009
@@ -77,12 +78,13 @@ tempfile  tg2009 tg2010 tg2011
 save "`tg2009'"
 
 u "$wave2/GSEC1.dta", clear
-keep HHID region urban regurb stratum wgt10 h1aq1
+keep HHID region urban regurb stratum wgt10 h1aq1 comm spitoff09_10 spitoff10_11
+destring comm, replace
 gen year = 2010 
 save "`tg2010'"
 
 u "$wave3/GSEC1.dta", clear
-keep HHID region urban regurb sregion h1aq1 mult HH_2005 h1aq1
+keep HHID region urban regurb sregion h1aq1 mult HH_2005 h1aq1 comm
 gen year = 2011
 
 append using "`tg2010'"
