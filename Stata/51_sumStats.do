@@ -11,7 +11,7 @@
 * create log file and load the data
 clear
 capture log close
-log using "$pathlog/sumStats.do"
+log using "$pathlog/sumStats.do", replace
 
 u "$pathout/RigaPanel_201504.dta"
 

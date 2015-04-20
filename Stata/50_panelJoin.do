@@ -42,11 +42,11 @@ replace district = "MITYANA" if district == "MIYANA"
 * Fix the geographic variables (districts and subregions)
 include "$pathdo2/adminRecode.do"
 
-* Merge together with 
-
+* Check that the comm variable is available across waves
+egen commMin = min(comm), by(HHID)
 
 * Retain key variables of interest for exploring with R and ArcGIS
-global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount urban month subRegion"
+global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount urban month subRegion stratum"
 global health2 "pctstunted underwgtCount pctunderwgt wastedCount pctwasted breastFedCount illness totIllness medCostspc"
 global hhchar "femhead agehead hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
 global edvars "educHoh educAdult quitEduchoh quitEducPreg marriedHohp under5 mlaborShare flaborShare literateHoh literateSpouse" 

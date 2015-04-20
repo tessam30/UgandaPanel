@@ -60,7 +60,7 @@ replace district = upper(district)
 /* Income = agr_wge + nonagr_wge + crop1 + livestock + selfemp + transfer + other == totincome1 */
 
 * Designate 3 cuts of data to be explored in mapping software
-global part "p_ag p_nonag p_nonfarm p_offarm p_onfarm p_trans TLU_total weight"
+global part "p_ag p_nonag p_nonfarm p_offarm p_onfarm p_trans TLU_total weight comm"
 global assets "totagprod totagsold TLU_sheep TLU_pigs TLU_poultry TLU_donkey TLU_rabbit TLU_beehive TLU_cattle"
 global share "sh1agr_wge sh1nonagr_wge sh1crop1 sh1livestock sh1selfemp sh1transfer sh1other"
 global ftype "fhh fmhh fshh lhh mhh divhh pcexp ptrack totincome1 totincome2"
