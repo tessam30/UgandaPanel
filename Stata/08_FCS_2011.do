@@ -83,7 +83,7 @@ g oilFCS = oil_days * 0.5
 * Check "Outside food and drink" to ensure that you are not missing major consumables
 tab itmcd if foodcat == 12
 
-* Label the variables, get their averages and plot them on same graph to compare
+* Label the variables
 local ftype cereal starches staples pulse veg fruit meat milk sugar oil 
 local n: word count `ftype'
 forvalues i = 1/`n' {
