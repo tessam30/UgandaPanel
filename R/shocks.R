@@ -36,7 +36,7 @@ hzd <- summarise(hzdshk,
 hzd <- subset(hzd, hzd$stratumP!="")
 
 ggplot(hzd, aes(x = year, y = shock, colour = stratumP)) + 
-  geom_point(shape = 21, fill = "white", size = 2.5) + 
+  geom_point(shape = 21, fill = "white", size = 3) + 
   facet_wrap(~ stratumP) + stat_smooth(method = "loess", size = 1) +
   geom_errorbar(aes(ymin = shock - shock.se, ymax = shock + shock.se, width = 0.1)) + 
   theme_bw()
