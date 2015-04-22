@@ -13,7 +13,8 @@ lapply(libs, require, character.only=T)
 # --- Set working directory for home or away
 wd <- c("U:/UgandaPanel/Export/")
 wdw <- c("C:/Users/Tim/Documents/UgandaPanel/Export")
-setwd(wdw)
+wdh <- c("C:/Users/t/Documents/UgandaPanel/Export")
+setwd(wdh)
 
 # --- Read in as a dplyr data frame tbl
 d <- tbl_df(read.csv("UGA_201504_all.csv"))
@@ -28,7 +29,7 @@ hzdshk <- group_by(d, year, stratumP)
 hzd <- summarise(hzdshk, 
                  shock = mean(hazardShk, na.rm = TRUE),
                  shock.n = n(),
-                 shock.sd = sqrt(shock*(1-shock)/shock.n))
+                 shock.se = sqrt(shock*(1-shock)/shock.n))
                  
 
 # --- remove rows missing stratumP information
@@ -36,5 +37,13 @@ hzd <- subset(hzd, hzd$stratumP!="")
 
 ggplot(hzd, aes(x = year, y = shock, colour = stratumP)) + 
   geom_point(shape = 21, fill = "white", size = 2.5) + 
-  facet_wrap(~ stratumP) + stat_smooth(method = "loess", size = 1.5)
+  facet_wrap(~ stratumP) + stat_smooth(method = "loess", size = 1) +
+  geom_errorbar(aes(ymin = shock - shock.se, ymax = shock + shock.se, width = 0.1)) + 
+  theme_bw()
+
+
+
+
+
+
 
