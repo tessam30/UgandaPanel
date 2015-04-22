@@ -92,8 +92,7 @@ save "$pathout/keyVars_201504.dta", replace
 twoway(histogram FCS), by(year, cols(1))
 histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(stratumP, cols(2))
 histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(year, cols(2))
-histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(stratumP year, cols(2)) 
-
+*histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS, replace) by(stratumP year, cols(2)) 
 
 * Look at dietary diversity over time
 graph box FCS, over(dietDiv) by(year, cols(3))
@@ -110,6 +109,25 @@ g byte pFull = riga_mg == 3
 bys HHID (year): g byte latCheck = (lat_stack[2] == lat_stack[1])
 bys HHID (year): replace latitude = latitude[1]
 bys HHID (year): replace longitude = longitude[1]
+
+* Swap lat / lon names to use stacked data in all geoprocessing with the limitation that
+* any analysis is only indicative of the sample; Not enough geographic resoluation to make
+* sweeping statements regarding the representativeness of the data; Only can make conclusions
+* about the sample itself and show suggestive geographic patterns which may/may not
+* require more detailed sample.
+ren latitude lat_jit
+ren longitude lon_jit
+ren lat_stack latitude
+ren lon_stack longitude
+
+* Fix stratumP values
+la def strat2 1 "Kampala" 2 "Other Urban" 3 "Central Rural" 4 "East Rural" /*
+*/ 5 "North Rural" 6 "West Rural"
+la val stratumP strat2
+
+forvalues i = 2009(1)2011 {
+	export delimited using "$pathexport\UGA_201504_`i'.csv" if year == `i', replace
+}
 
 sa "$pathout/RigaPanel_201504.dta", replace
 
