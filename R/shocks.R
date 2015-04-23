@@ -56,6 +56,79 @@ g.spec <- theme(legend.position = "none", legend.title=element_blank(),
                 panel.border = element_rect(colour = "black"),
                 panel.margin = unit(2, "lines")) # Move plot title up
 
+
+# --- Generate a start date
+startDate <- as.Date("2009-01-01")
+xm <- seq(startDate, by = "month", length.out = 36)
+
+shkHm <- cbind(shkHm, xm)
+
+p <- ggplot(shkHm, aes(x = xm, y = shock, colour = year)) + geom_point() + stat_smooth(method = "loess", size = 1)
+
+
+# --- Create a date for each observation in panel
+d$date <- as.Date(paste(c(d$year), c(d$month), c(1), sep="-"))
+head(subset(d, select = c(year, month, date )))
+
+
+# Create a generic ggplot function for exploratory purposes
+myplot <- function(x, y, z){
+  ggplot(dsub, aes_string(x = x, y = y, colour = z)) + facet_wrap(~stratumP, ncol = 6) + 
+  geom_smooth(method = "loess", size = 1, se = "FALSE") + 
+  g.spec
+}
+
+# --- Plot data
+dsub <- filter(d, stratumP !="")
+
+dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "Central Rural", "West Rural", 
+                                                  "East Rural", "Other Urban", "Kampala"))
+
+# --- Create a plot that fits a binomial glm function to the data for each region
+ggplot(dsub, aes(x = date, y = hazardShk, colour = stratumP)) +  facet_wrap(~stratumP, ncol = 6) + 
+  stat_smooth(method = "glm", family = "binomial", size = 1, geom = "point") + 
+  g.spec + scale_y_continuous(lim=c(0,1))
+
+# --- Same plot for health shocks, but first reorder facets for plotting in order
+dsub$stratumP <- factor(dsub$stratumP, levels = c("East Rural", "North Rural", "Central Rural", 
+                                            "West Rural", "Other Urban", "Kampala"))
+
+end <- max(dsub$date)
+ggplot(dsub, aes(x = date, y = healthShk, colour = stratumP)) + facet_wrap(~stratumP, ncol = 3) + 
+  stat_smooth(method = "glm", family = "binomial", size = 1, geom = "line") + 
+  g.spec + scale_y_continuous(limits = c(0,1)) + scale_x_date(breaks = date_breaks("12 months"),
+                                                              labels = date_format("%Y"))
+
+
+# --- same plot for crime shocks
+dsub$stratumP <- factor(dsub$stratumP, levels = c("Central Rural", "East Rural", "Other Urban", 
+                                                  "North Rural", "Kampala", "West Rural"))
+
+ggplot(dsub, aes(x = date, y = crimeShk, colour = stratumP)) + facet_wrap(~stratumP, ncol = 3) + 
+  stat_smooth(method = "glm", family = "binomial", size = 1, geom = "line") + 
+  g.spec + scale_x_date(breaks = date_breaks("12 months"), labels = date_format("%Y"))
+
+
+# --- Look at dependency ratios overtime and resort to order
+dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "East Rural", "West Rural", 
+                                                  "Central Rural", "Other Urban", "Kampala"))
+
+ggplot(dsub, aes(x = year, y = depRatio, colour = stratumP)) + facet_wrap(~stratumP, ncol = 6) + 
+  geom_smooth(method = "loess", size = 1, se = "FALSE") + 
+  g.spec
+
+
+# --- What about farm specializations overtime across regions
+myplot(dsub$mhh)
+
+
+
+
+
+
+
+
+
 # --- Group and summarise shock data
 shkH <- group_by(d, year, stratumP) %>%
     summarise(shock = mean(hazardShk, na.rm = TRUE), # create mean values for shock
@@ -86,6 +159,14 @@ p <-ggplot(shkH, aes(x = year, y = shock, colour = stratumP)) +
 print(p)
 
 
+
+
+
+
+
+
+
+
 # Run same analysis for health shocks
 shkHlth <- group_by(d, year, stratumP) %>%
       summarise(shock = mean(healthShk, na.rm = TRUE),
@@ -112,7 +193,12 @@ p <-ggplot(shkHlth, aes(x = year, y = shock, colour = stratumP)) +
   labs(x = "", y = "Percent of households reporting shock\n", # label y-axis and create title
        title = "Health shocks are second most common type of shock.", size = 13) +
   scale_colour_brewer(palette="Set2") # apply faceting and color palette
-print(p)
+print(p
+
+
+
+
+
 
 # Run same analysis for crime shocks
 shkCr <- group_by(d, year, stratumP) %>%
@@ -169,6 +255,8 @@ p <-ggplot(mosq, aes(x = year, y = shock, colour = stratumP)) +
        title = "Mosquito net use.", size = 13) +
   scale_colour_brewer(palette="Set2") # apply faceting and color palette
 print(p)
+
+
 
 
 
