@@ -219,6 +219,8 @@ pappend childHealth_I_2009 childHealth_I_2010 childHealth_I_2011 pa_ch
 sort HHID PID year
 egen persID = group(HHID PID)
 xtset persID year
+
+destring HHID, gen(hh)
 save "$pathout/childHealth_I_all.dta", replace
 
 * Merge with panel data and drop annual data

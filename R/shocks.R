@@ -14,7 +14,7 @@ lapply(libs, require, character.only=T)
 wd <- c("U:/UgandaPanel/Export/")
 wdw <- c("C:/Users/Tim/Documents/UgandaPanel/Export")
 wdh <- c("C:/Users/t/Documents/UgandaPanel/Export")
-setwd(wdh)
+setwd(wdw)
 
 # --- Read in as a dplyr data frame tbl
 d <- tbl_df(read.csv("UGA_201504_all.csv"))
@@ -61,10 +61,8 @@ g.spec <- theme(legend.position = "none", legend.title=element_blank(),
 startDate <- as.Date("2009-01-01")
 xm <- seq(startDate, by = "month", length.out = 36)
 
-shkHm <- cbind(shkHm, xm)
-
-p <- ggplot(shkHm, aes(x = xm, y = shock, colour = year)) + geom_point() + stat_smooth(method = "loess", size = 1)
-
+# --- Subset data to remove any observations with no stratum information
+dsub <- filter(d, stratumP !="")
 
 # --- Create a date for each observation in panel
 d$date <- as.Date(paste(c(d$year), c(d$month), c(1), sep="-"))
@@ -82,6 +80,53 @@ myplot <- function(x, y, z){
 
 myplot("year", "totincome1", "stratumP")
 
+# --- Food security indicators (FCS & dietary diversity) alongside stunting/wasting/underweight
+
+dsub$stratumP <- factor(dsub$stratumP, levels = c("West Rural", "North Rural", "East Rural", 
+                                                  "Central Rural", "Other Urban", "Kampala"))
+ggplot(dsub, aes(x = date, y = dietDiv, colour = stratumP)) +
+  stat_smooth(method = "loess") + facet_wrap(~ stratumP, ncol = 6) +
+  g.spec + scale_x_date(breaks = date_breaks("12 months"),
+                        labels = date_format("%Y")) +
+  scale_y_continuous(breaks = seq(0, 12, 2), limits = c(0,12)) + # customize y-axis
+  labs(x = "", y = "Average number of food groups consumed\n", # label y-axis and create title
+       title = "Households in Western Rural zones lag behind in dietary diversity scores.", size = 13)
+  
+# --- Add accompanying distribution plot to show how data cluster
+ggplot(dsub, aes(dietDiv, colour = year)) + facet_wrap(year ~stratumP, ncol = 6 ) + 
+  geom_density(aes(y = ..count..)) + g.spec + scale_colour_brewer(palette="Set2") # apply faceting and color palette
+
+# --- Add FCS indicators by region
+dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
+                                                  "Central Rural", "Other Urban", "Kampala"))
+
+ggplot(dsub, aes(x = date, y = FCS, colour = stratumP)) + 
+  stat_smooth(method = "loess", size = 1.25) + facet_wrap(~ stratumP, ncol = 3) + geom_point(alpha=0.15)+ 
+  g.spec + scale_x_date(breaks = date_breaks("12 months"),
+                        labels = date_format("%Y")) +
+  scale_y_continuous(breaks = seq(0, 110, 10 ), limits = c(0,110)) + # customize y-axis
+  labs(x = "", y = "Average number of food groups consumed\n", # label y-axis and create title
+       title = "Households in Western Rural zones lag behind in dietary diversity scores.", size = 13)
+
+# Plot distribution of data by years (not that interesting)
+dsub$fyear <- as.factor(dsub$year)
+ggplot(dsub, aes(x = FCS, fill = fyear)) + geom_density(aes(y = ..count..), alpha=0.3) 
+
+# --- Stunting indicators at individual level
+# --- Read in as a dplyr data frame tbl
+d.ind <- tbl_df(read.csv("UGA_201504_ind_all.csv"))
+
+# Look at stunting by months of age across regions
+d.indf <- filter(d.ind, stunted!="NA", stratumP!="") 
+ggplot(d.indf, aes(x = year, y = stunted, colour = stratumP)) + stat_smooth() +
+  facet_wrap(~stratumP, ncol=3)  + g.spec
+
+
+
+
+
+
+
 # --- convert binaries of interest into factors for cdplot
 d$hzdShock <- as.factor(d$hazardShk)
 d$hlthShock <- as.factor(d$healthShk)
@@ -96,17 +141,9 @@ dsub.elev <- subset(d, year== 2011)
 cdplot(crimeShock ~ depRatio, data = dsub.nine)
 
 
-
-
-
-
-
-
-# --- Plot data
-dsub <- filter(d, stratumP !="")
-
 dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "Central Rural", "West Rural", 
                                                   "East Rural", "Other Urban", "Kampala"))
+
 
 # --- Create a plot that fits a binomial glm function to the data for each region
 ggplot(dsub, aes(x = date, y = hazardShk, colour = stratumP)) +  facet_wrap(~stratumP, ncol = 6) + 

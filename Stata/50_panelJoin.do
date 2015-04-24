@@ -129,7 +129,15 @@ forvalues i = 2009(1)2011 {
 	export delimited using "$pathexport\UGA_201504_`i'.csv" if year == `i', replace
 }
 
-sa "$pathout/RigaPanel_201504.dta", replace
+sa "$pathout/RigaPanel_201504_all.dta", replace
+
+* Keep key regional information to merge with individual-level health data
+clear
+ use "$pathout/childHealth_I_all.dta", clear
+merge m:1 HHID year using "$pathout/RigaPanel_201504_all.dta", gen(health_merge)
+drop if health_merge==2
+
+export delimited using "$pathexport\UGA_201504_ind_all.csv", replace
 
 
 
