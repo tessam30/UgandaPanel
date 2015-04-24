@@ -14,7 +14,7 @@ lapply(libs, require, character.only=T)
 wd <- c("U:/UgandaPanel/Export/")
 wdw <- c("C:/Users/Tim/Documents/UgandaPanel/Export")
 wdh <- c("C:/Users/t/Documents/UgandaPanel/Export")
-setwd(wdw)
+setwd(wdh)
 
 # --- Read in as a dplyr data frame tbl
 d <- tbl_df(read.csv("UGA_201504_all.csv"))
@@ -71,12 +71,36 @@ d$date <- as.Date(paste(c(d$year), c(d$month), c(1), sep="-"))
 head(subset(d, select = c(year, month, date )))
 
 
-# Create a generic ggplot function for exploratory purposes
+# --- Create a generic ggplot function for exploratory purposes
+# Note the use of "aes_string" to incorporate variables into ggplot call
+
 myplot <- function(x, y, z){
   ggplot(dsub, aes_string(x = x, y = y, colour = z)) + facet_wrap(~stratumP, ncol = 6) + 
   geom_smooth(method = "loess", size = 1, se = "FALSE") + 
   g.spec
 }
+
+myplot("year", "totincome1", "stratumP")
+
+# --- convert binaries of interest into factors for cdplot
+d$hzdShock <- as.factor(d$hazardShk)
+d$hlthShock <- as.factor(d$healthShk)
+d$crimeShock  <- as.factor(d$crimeShk)
+
+# --- subset the data
+dsub.nine <- subset(d, year== 2009)
+dsub.ten <- subset(d, year== 2010)
+dsub.elev <- subset(d, year== 2011)
+
+# --- Plot conditional density of shocks versus various dep vars
+cdplot(crimeShock ~ depRatio, data = dsub.nine)
+
+
+
+
+
+
+
 
 # --- Plot data
 dsub <- filter(d, stratumP !="")
