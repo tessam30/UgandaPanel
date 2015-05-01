@@ -101,7 +101,7 @@ dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "West Rural", "
                                                   "Central Rural", "Other Urban", "Kampala"))
 
 ggplot(dsub, aes(x = date, y = FCS, colour = stratumP)) + 
-  stat_smooth(method = "loess", size = 1.25) + facet_wrap(~ stratumP, ncol = 3) + geom_point(alpha=0.15)+ 
+  stat_smooth(method = "loess", size = 1.25) + facet_wrap(~ stratumP, ncol = 6) + geom_point(alpha=0.15)+ 
   g.spec + scale_x_date(breaks = date_breaks("12 months"),
                         labels = date_format("%Y")) +
   scale_y_continuous(breaks = seq(0, 110, 10 ), limits = c(0,110)) + # customize y-axis
@@ -118,8 +118,14 @@ d.ind <- tbl_df(read.csv("UGA_201504_ind_all.csv"))
 
 # Look at stunting by months of age across regions
 d.indf <- filter(d.ind, stunted!="NA", stratumP!="") 
-ggplot(d.indf, aes(x = year, y = stunted, colour = stratumP)) + stat_smooth() +
-  facet_wrap(~stratumP, ncol=3)  + g.spec
+ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = stratumP)) + 
+  stat_smooth(method = "loess", linesize = 1.5) +
+  facet_wrap(~stratumP, ncol=3) + 
+  g.spec
+
+
+
+
 
 
 
@@ -141,14 +147,20 @@ dsub.elev <- subset(d, year== 2011)
 cdplot(crimeShock ~ depRatio, data = dsub.nine)
 
 
+
+# --- Hazard plots
 dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "Central Rural", "West Rural", 
                                                   "East Rural", "Other Urban", "Kampala"))
 
 
 # --- Create a plot that fits a binomial glm function to the data for each region
-ggplot(dsub, aes(x = date, y = hazardShk, colour = stratumP)) +  facet_wrap(~stratumP, ncol = 6) + 
-  stat_smooth(method = "glm", family = "binomial", size = 1, geom = "point") + 
-  g.spec + scale_y_continuous(lim=c(0,1))
+ggplot(filter(dsub, hazardShk!="NA"), aes(x = date, y = hazardShk, colour = stratumP)) +  facet_wrap(~stratumP, ncol = 6) + 
+  stat_smooth(method = "glm", family = "binomial", size = 1.5, geom = "line", ) + 
+  g.spec + scale_y_continuous(lim=c(0,1)) + 
+  scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
+  geom_hline(yintercept = c(0.5), linetype = "dotted", size = 1, alpha = 0.125) +
+  geom_hline(yintercept = c(0.25, 0.75), linetype = "dotted", size = 1, alpha = 0.10) 
+  
 
 # --- Same plot for health shocks, but first reorder facets for plotting in order
 dsub$stratumP <- factor(dsub$stratumP, levels = c("East Rural", "North Rural", "Central Rural", 
@@ -157,8 +169,9 @@ dsub$stratumP <- factor(dsub$stratumP, levels = c("East Rural", "North Rural", "
 end <- max(dsub$date)
 ggplot(dsub, aes(x = date, y = healthShk, colour = stratumP)) + facet_wrap(~stratumP, ncol = 3) + 
   stat_smooth(method = "glm", family = "binomial", size = 1, geom = "line") + 
-  g.spec + scale_y_continuous(limits = c(0,1)) + scale_x_date(breaks = date_breaks("12 months"),
-                                                              labels = date_format("%Y"))
+  g.spec + scale_y_continuous(limits = c(0,1)) + 
+  scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
+  geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = .125)
 
 
 # --- same plot for crime shocks
@@ -207,10 +220,9 @@ shkH$stratumP <- factor(shkH$stratumP, levels = c("North Rural", "Central Rural"
 p <-ggplot(shkH, aes(x = year, y = shock, colour = stratumP)) + 
       geom_point(shape = 16, fill = "white", size = 4) +stat_smooth(method = "loess", size = 1) +
       facet_wrap(~ stratumP, ncol = 6) + 
-      geom_errorbar(aes(ymin = shock - shock.se, ymax = shock + shock.se, width = 0.1)) +
+      #geom_errorbar(aes(ymin = shock - shock.se, ymax = shock + shock.se, width = 0.1)) +
       geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = 0.10) +
-      
-  #geom_text(aes(x = year, y = shock, ymax = shock, label = rdshock, vjust = 0, hjust = .2)) +
+        #geom_text(aes(x = year, y = shock, ymax = shock, label = rdshock, vjust = 0, hjust = .2)) +
       g.spec + 
       scale_x_continuous(breaks = seq(2009, 2011, 1)) + #customize x-axis
       scale_y_continuous(limits = c(0,1)) + # customize y-axis
