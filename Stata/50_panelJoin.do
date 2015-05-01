@@ -125,6 +125,19 @@ la def strat2 1 "Kampala" 2 "Other Urban" 3 "Central Rural" 4 "East Rural" /*
 */ 5 "North Rural" 6 "West Rural"
 la val stratumP strat2
 
+* Generate uniform distribution for rasters ranges for each year
+g rastUnif09 = uniform() if year==2009
+g rastUnif10 = uniform() if year==2010
+g rastUnif11 = uniform() if year==2011 
+
+preserve
+keep hh latitude longitude rastUnif09 rastUnif10 rastUnif11 year
+forvalues i = 2009(1)2011 {
+	export delimited using "$pathexport\UGA_201504_`i'_rast.csv" if year == `i', replace
+}
+*
+restore
+
 forvalues i = 2009(1)2011 {
 	export delimited using "$pathexport\UGA_201504_`i'.csv" if year == `i', replace
 }
