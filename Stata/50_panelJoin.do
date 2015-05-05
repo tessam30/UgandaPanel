@@ -9,8 +9,10 @@
 #-------------------------------------------------------------------------------*/
 
 clear
+capture log close
 use "$pathout/FoodSecurity_all.dta", clear
 set more off
+log using "$pathlog/panelJoin", replace
 
 * Check missingness
 mdesc HHID year
@@ -69,14 +71,16 @@ replace stratumP = 2 if region == 4 & urban == 1
 global sampling "urban month subRegion stratum stratumP region urban latitude lat_stack longitude lon_stack HHID hh year"
 global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount "
 global health2 "pctstunted underwgtCount pctunderwgt wastedCount pctwasted breastFedCount illness totIllness medCostspc"
-global hhchar "femhead agehead hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
+global hhchar "femhead agehead  ageheadsq hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
+global agevar "under5 under15 under24 femCount20_34 hhmignet"
 global edvars "educHoh educAdult quitEduchoh quitEducPreg marriedHohp under5 mlaborShare flaborShare literateHoh literateSpouse" 
 global assets "electricity hutDwelling metalRoof latrineCovered latrineWash under5m under5f under15m under15f adultEquiv"
 global shocks "hazardShk priceShk employShk healthShk crimeShk assetShk anyshock totShock"
 global shock2 "priceShk_tot hazardShk_tot employShk_tot healthShk_tot crimeShk_tot assetShk_tot totShock_tot"
-global pcashock "ag aglow conflict drought disaster financial health other theft"
+global pcashock "ag aglow conflict drought disaster financial health other theft badcope goodcope"
+global env "dist_road dist_popcenter dist_market dist_borderpost dist_admctr ssa_aez09 srtm_uga"
 
-keep $sampling $health $health2 $hhchar $edvars $assets $shocks $shock2 $pcashock
+keep $sampling $health $health2 $hhchar $edvars $assets $shocks $shock2 $pcashock $agevar $env
 drop if latitude == .
 
 bys HHID: gen pwave = _N
@@ -151,6 +155,8 @@ merge m:1 HHID year using "$pathout/RigaPanel_201504_all.dta", gen(health_merge)
 drop if health_merge==2
 
 export delimited using "$pathexport\UGA_201504_ind_all.csv", replace
+
+log close
 
 
 
