@@ -19,7 +19,7 @@ log using "$pathlog/ShockAnalysis", replace
 tab year stratumP, sum (hazardShk)
 
 global hhchar "femhead agehead marriedHohp hhsize gendMix mixedEth" 
-global agechar "under5 youth15to24 depRatio mlaborShare flaborShare adultEquiv"
+global agechar "under5 youth15to24 depRatio mlabor flabor adultEquiv"
 global educhar "literateHoh literateSpouse educHoh"
 global wealth "landless agwealth wealth infraindex hhmignet" 
 global geo "dist_road dist_popcenter dist_market dist_borderpost srtm_uga"
@@ -33,8 +33,9 @@ foreach x of varlist anyshock hazardShk healthShk goodcope badcope {
 set more off
 * First fit anyshock model
 forvalues i = 2009(1)2011 {
-	eststo any1`i', title("Any shock"): logit anyshock $hhchar $agechar $educChar i.month i.stratumP if year==`i', or robust
-	eststo any2`i', title("Any shock"): logit anyshock $hhchar $agechar $educChar $wealth i.month i.stratumP if year==`i' , or robust
-	eststo any3`i', title("Any shock"): logit anyshock $hhchar $agechar $educChar $wealth $geo i.month i.stratumP if year==`i', or robust
+	eststo any1`i', title("Any shock"): logit anyshock $hhchar $agechar $educChar i.month ib(1).stratumP if year==`i', or robust
+	eststo any2`i', title("Any shock"): logit anyshock $hhchar $agechar $educChar $wealth i.month ib(1).stratumP if year==`i' , or robust
+	eststo any3`i', title("Any shock"): logit anyshock $hhchar $agechar $educChar $wealth $geo i.month ib(1).stratumP if year==`i', or robust
 	}
 esttab any32009 any32010 any32011, se star(* 0.10 ** 0.05 *** 0.001) label
+coefplot any32009 any32010 any32011
