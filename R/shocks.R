@@ -61,12 +61,12 @@ g.spec <- theme(legend.position = "none", legend.title=element_blank(),
 startDate <- as.Date("2009-01-01")
 xm <- seq(startDate, by = "month", length.out = 36)
 
-# --- Subset data to remove any observations with no stratum information
-dsub <- filter(d, stratumP !="")
-
 # --- Create a date for each observation in panel
 d$date <- as.Date(paste(c(d$year), c(d$month), c(1), sep="-"))
 head(subset(d, select = c(year, month, date )))
+
+# --- Subset data to remove any observations with no stratum information
+dsub <- filter(d, stratumP !="")
 
 
 # --- Create a generic ggplot function for exploratory purposes
@@ -106,7 +106,7 @@ ggplot(dsub, aes(x = date, y = FCS, colour = stratumP)) +
                         labels = date_format("%Y")) +
   scale_y_continuous(breaks = seq(0, 110, 10 ), limits = c(0,110)) + # customize y-axis
   labs(x = "", y = "Average number of food groups consumed\n", # label y-axis and create title
-       title = "Households in Western Rural zones lag behind in dietary diversity scores.", size = 13)
+       title = "Households in North rural zones lag behind in food consumption scores.", size = 13)
 
 # Plot distribution of data by years (not that interesting)
 dsub$fyear <- as.factor(dsub$year)
@@ -117,17 +117,50 @@ ggplot(dsub, aes(x = FCS, fill = fyear)) + geom_density(aes(y = ..count..), alph
 d.ind <- tbl_df(read.csv("UGA_201504_ind_all.csv"))
 
 # Look at stunting by months of age across regions
+# First cross-tabulate data to get percentages for each region
+library(gmodels)
 d.indf <- filter(d.ind, stunted!="NA", stratumP!="") 
-ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = stratumP)) + 
+
+CrossTable(d.indf$stunted, d.indf$stratumP)
+
+# Relevel factors for stratum to get order on graphics
+d.indf$stratumP <- factor(d.indf$stratumP, levels = c("West Rural", "East Rural", "North Rural", 
+                                                  "Central Rural", "Kampala", "Other Urban"))
+
+# Graph smoothed stunting rates with data jittered  
+ggplot(d.indf[d.indf$year == 2009, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
   stat_smooth(method = "loess", linesize = 1.5) +
   facet_wrap(~stratumP, ncol=3) + 
-  g.spec
+  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
+  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+       title = "Child stunting was most prevalent in the West Rural region in 2009.", size = 13)
 
 
+# Graph smoothed stunting rates with data jittered  
+ggplot(d.indf[d.indf$year == 2010, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
+  stat_smooth(method = "loess", linesize = 1.5) +
+  facet_wrap(~stratumP, ncol=3) + 
+  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
+  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+       title = "Child stunting was most prevalent in the West Rural region in 2010", size = 13)
 
 
+# Graph smoothed stunting rates with data jittered  
+ggplot(d.indf[d.indf$year == 2011, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
+  stat_smooth(method = "loess", linesize = 1.5) +
+  facet_wrap(~stratumP, ncol=3) + 
+  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
+  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+       title = "Child stunting was most prevalent in the West Rural region in 2011", size = 13)
 
 
+# Graph smoothed stunting rates with data jittered  
+ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = stratumP)) + 
+  stat_smooth(method = "loess", linesize = 1.5) +
+  facet_wrap(stratumP, ncol=3) + 
+  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
+  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+       title = "Child stunting was most prevalent in the West Rural region in 2011", size = 13)
 
 
 

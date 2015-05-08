@@ -13,7 +13,7 @@ remove(list = ls())
 
 # Load libraries & set working directory
 libs <- c ("ggplot2", "useful", "dplyr", "RColorBrewer", "coefplot", 
-           "stringr", "haven", "corrgram", "ellipse", "sandwich", "robust")
+           "stringr", "haven", "corrgram", "ellipse", "sandwich", "robust", "aod")
 
 # Load required libraries
 lapply(libs, require, character.only=T)
@@ -26,14 +26,19 @@ setwd(wdw)
 
 
 # --- Load in Riga + LSMS data for all years and subset into years
-vul <- tbl_df(read.csv("UGA_201504_all.csv", header = TRUE, sep =","))
+vul <- tbl_df(read.csv("UGA_201504_all.csv", header = TRUE, sep =",", stringsAsFactors = FALSE))
 
 # - Filter out obs missing sampling information
 vul <- filter(vul, stratumP !="")
+vul <- filter(vul, educHoh !="")
 
 # Re-order stratumP to set Kampala as base
 vul$stratumP <- factor(vul$stratumP, levels = c("Kampala", "Other Urban", "North Rural", 
                                                  "East Rural","West Rural", "Central Rural"))
+vul$educHoh <- as.factor(vul$educHoh)
+vul$educHoh <- factor(vul$educHoh, levels = c("No Eduction", "Pre-primary", "Primary", "Post-primary",
+                                              "Junior Techincal/Vocational ", "Lower Secondary", "Upper Secondary",
+                                              "Post-Secondary Specialized", "Tertiary")
 
 
 # Subset data for plotting/modeling
@@ -42,15 +47,15 @@ vul2 <- vul[vul$year == 2010, ]
 vul3 <- vul[vul$year == 2011, ]
 
 # Check out correlation of variables
-corr.d1 <- select(vul1, anyshock, hazardShk, femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
+corr.d1 <- dplyr::select(vul1, anyshock, hazardShk, femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
                  under5, youth15to24, depRatio, mlabor, flabor, literateHoh,
                  literateSpouse, educHoh, landless, agwealth, wealth, infraindex, hhmignet,
                  dist_road, dist_popcenter, dist_market, dist_borderpost, srtm_uga, stratumP)
-corr.d2 <- select(vul2, anyshock, hazardShk, femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
+corr.d2 <- dplyr::select(vul2, anyshock, hazardShk, femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
                  under5, youth15to24, depRatio, mlabor, flabor, literateHoh,
                  literateSpouse, educHoh, landless, agwealth, wealth, infraindex, hhmignet,
                  dist_road, dist_popcenter, dist_market, dist_borderpost, srtm_uga, stratumP)
-corr.d3 <- select(vul3, anyshock, hazardShk,  femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
+corr.d3 <- dplyr::select(vul3, anyshock, hazardShk,  femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
                  under5, youth15to24, depRatio, mlabor, flabor, literateHoh,
                  literateSpouse, educHoh, landless, agwealth, wealth, infraindex, hhmignet,
                  dist_road, dist_popcenter, dist_market, dist_borderpost, srtm_uga, stratumP)
@@ -80,6 +85,13 @@ hzd1.1 <- glm(hazardShk ~ femhead + agehead + marriedHohp + hhsize + gendMix + m
                 factor(stratumP), 
                 data = vul1, family = binomial(link = "logit"))
 
+hzd2.1 <- glm(hazardShk ~ femhead + agehead + marriedHohp + hhsize + gendMix + mixedEth +
+                under5 + youth15to24 + depRatio + mlabor + flabor  +
+                literateHoh + literateSpouse + educHoh +
+                landless + agwealth + wealth + infraindex + hhmignet + factor(month) +
+                factor(stratumP), 
+              data = vul2, family = binomial(link = "logit"))
+
 # # Robust standard-errore
 # # cov.m1 <- vcovHC(hzd1.1, type="HC0")
 # # std.err <- sqrt(diag(cov.m1))
@@ -88,11 +100,14 @@ hzd1.1 <- glm(hazardShk ~ femhead + agehead + marriedHohp + hhsize + gendMix + m
 #                LL = coef(hzd1.1) - 1.96 * std.err,
 #                UL = coef(hzd1.1) + 1.96 * std.err)
 
+
+# http://www.ats.ucla.edu/stat/r/dae/logit.htm
+
 # Check results
 summary(hzd1.1)
 
 # Plot graphics
-coefplot(hzd1.1)
+multiplot(hzd1.1, hzd2.1)
 
 
 
