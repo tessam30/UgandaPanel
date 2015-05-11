@@ -98,13 +98,13 @@ egen hhDurVal_sub = sum(h14q5) if h14q4!=. & inlist(h14q2, 2, 3, 4)!= 1, by(HHID
 la var hhDurVal_sub "total value of durables not including house, land or buildings"
 
 *tabstat hhDurablesValue, by(d1_02) stat(mean sd min max)
-drop h14* sregion h1aq1 HH_2005 mult stratum wgt10 wgt09wosplits wgt09 dist_code
+drop h14* sregion HH_2005 mult stratum wgt10 wgt09wosplits wgt09 dist_code district
 
 
 * Collapse down to HH level
 include "$pathdo/copylabels.do"
 ds (HHID urban regurb year), not
-collapse (max)`r(varlist)' (mean) year , by(HHID urban regurb)
+collapse (max) `r(varlist)' (mean) year, by(HHID urban)
 include "$pathdo/attachlabels.do"
 
 * Create a durable asset index based on core assets (not including house, land, building)
