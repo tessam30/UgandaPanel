@@ -56,17 +56,22 @@ local n: word count `loc'
 local j = 3
 forvalues i=1/`n'{
 	local a: word `i' of `loc'
-	eststo `a', title("`a' 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month if year==2009 & urban==0 & stratumP==`j', robust
+	eststo `a', title("`a' 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month if year==2009 & urban==0 & stratumP==`j' & pFull, robust
 	fitstat
 	local j = `j'+1
 	}
 *end
 *
+esttab Rural09 Central East North West using "$pathreg/HazarShk09.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
+*/ mtitles("Rural" "Central" "East" "North" "West")
+
 coefplot Rural09, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 
 coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
+
 
 *********
 *  2010 *
@@ -95,6 +100,8 @@ coefplot Rural09 Rural10, drop(_cons dist_road dist_popcenter dist_market dist_b
 
 coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
+
 
 ************
 * Now 2011 *
@@ -126,42 +133,57 @@ coefplot Rural09 Rural10 Rural11, drop(_cons dist_road dist_popcenter dist_marke
 
 coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
-
-
-
-
+graph export "$pathgraph/HazardShock_2011.png,", as(png) replace
 
 
 **********
-eststo Central, title("Hazard shock"): logit hazardShk $hhchar $agechar $educhar $wealth $geo if year==2009 & urban==0 & stratumP==3, or robust
-eststo East, title("Hazard shock"): logit hazardShk $hhchar $agechar $educhar $wealth $geo if year==2009 & urban==0 & stratumP==4, or robust
-eststo North, title("Hazard shock"): logit hazardShk $hhchar $agechar $educhar $wealth $geo if year==2009 & urban==0 & stratumP==5, or robust
-eststo West, title("Hazard shock"): logit hazardShk $hhchar $agechar $educhar $wealth $geo if year==2009 & urban==0 & stratumP==6, or robust
-esttab All Rural Central East North West, se star(* 0.10 ** 0.05 *** 0.001) label eform(0 1)
+* Create coefplots and exports for each region across three years
 
-coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga)/*
-*/ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny))
-
-
-
-
-
-
-forvalues i = 2009(1)2011 {
-	*eststo any1`i', title("Hazard shock"): logit hazardShk $hhchar $agechar $educhar if year==`i',  or robust
-	*eststo any2`i', title("Hazard shock"): logit hazardShk $hhchar $agechar $educhar $wealth if year==`i' ,  or robust
-	eststo any3`i', title("Hazard shock"): logit hazardShk $hhchar $agechar $educhar $wealth $geo region2-region6 if year==`i',  or cluster(longitude)
-	fitstat
-	}
+set more off
+local loc Central East North West
+local n: word count `loc'
+local j = 3
+forvalues i=1/`n'{
+	local a: word `i' of `loc'
+		forvalues year = 2009(1)2011 {
+			eststo `a'`year', title("`a' "): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month if year==`year' & urban==0 & stratumP==`j', robust
+			fitstat
+			}
+	* Create forest plots for each region
+	coefplot `a'2009 || `a'2010 || `a'2011, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+	*/ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+	graph export "$pathgraph/`a'_all.png", as(png) replace
+	
+	* Export results to a txt file
+	esttab `a'* using "$pathreg/`a'_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace 	
+	
+	* Iterate StratumP to align with name
+	local j = `j'+1
+}
 *end
 
+esttab Central* East* North* West* Rural09 Rural10 Rural11 using "$pathreg/Regions_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
+*/ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
+*/ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011")
 
 
-
+* Look at changes in wealth over time as captured by wealth index
 forvalues i = 2009(1)2011 {
-	eststo any1`i', title("Any shock"): logit anyshock $hhchar $agechar $educhar i.month ib(1).stratumP if year==`i', or robust
-	eststo any2`i', title("Any shock"): logit anyshock $hhchar $agechar $educhar $wealth i.month ib(1).stratumP if year==`i' , or robust
-	eststo any3`i', title("Any shock"): logit anyshock $hhchar $agechar $educhar $wealth $geo i.month ib(1).stratumP if year==`i', or robust
-	}
-esttab any32009 any32010 any32011, se star(* 0.10 ** 0.05 *** 0.001) label
-coefplot any32009 any32010 any32011, drop(month stratumP)
+	g tmp`i' = wealthindex_rur if year==`i'
+	egen hhwealth`i' = mean(tmp`i'), by(HHID)
+	
+	* Consumption
+	g tmp2`i' = pcexp if year==`i'
+	egen consump`i' = mean(tmp2`i'), by(HHID)
+	
+	drop tmp`i'
+}
+*
+
+* How do asset indices change overtime?
+twoway(scatter hhwealth2010 hhwealth2009 if year==2009 & hhwealth2010)(line hhwealth2009 hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
+twoway(scatter hhwealth2011 hhwealth2009 if year==2009 & hhwealth2010)(line hhwealth2009 hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
+twoway(scatter hhwealth2011 hhwealth2010 if year==2009 & hhwealth2010)(line hhwealth2009 hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
+
+* How does consumption change overtime
+

@@ -25,7 +25,7 @@ destring HHID, gen(hh)
 cd "$pathout"
 dir
 
-local mfile health_all hhchar_all hhinfra_all shocks_all GeovarsMerged geoadmin
+local mfile health_all hhchar_all hhinfra_all shocks_all GeovarsMerged geoadmin hhpc_all
 foreach x of local mfile {
 	merge 1:1 HHID year using "$pathout/`x'.dta", gen(mg_`x')
 	la var mg_`x' "Merge results with `x'"
@@ -72,7 +72,7 @@ global sampling "urban month subRegion stratum stratumP region urban latitude la
 global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount "
 global health2 "pctstunted underwgtCount pctunderwgt wastedCount pctwasted breastFedCount illness totIllness medCostspc"
 global hhchar "femhead agehead  ageheadsq hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
-global agevar "under5 under15 under24 femCount20_34 hhmignet"
+global agevar "under5 under15 under24 femCount20_34 hhmignet mlabor flabor wealthindex_rur wealthindex"
 global edvars "educHoh educAdult quitEduchoh quitEducPreg marriedHohp under5 mlaborShare flaborShare literateHoh literateSpouse" 
 global assets "electricity hutDwelling metalRoof latrineCovered latrineWash under5m under5f under15m under15f adultEquiv"
 global shocks "hazardShk priceShk employShk healthShk crimeShk assetShk anyshock totShock"
@@ -101,13 +101,20 @@ histogram FCS, kdensity xtitle(Food Consumption Score) legend(cols(1)) name(FCS,
 * Look at dietary diversity over time
 graph box FCS, over(dietDiv) by(year, cols(3))
 
-* Merge with RIGA data
+* Merge with RIGA dataa
 drop hh
 ren hhid hh
 merge 1:1 hh year using "$pathout/RigaPanel.dta", gen(riga_mg)
 
+
+* Winsorize agwealth
+winsor2 agwealth, replace cuts(1 99.8)
+
 * Flag households that survive all three years
 g byte pFull = riga_mg == 3
+
+* Fix agro_ecological zones
+bys HHID (year): replace ssa_aez09 = ssa_aez09[1]
 
 * fix jittered lat lons to be consistent overtime
 bys HHID (year): g byte latCheck = (lat_stack[2] == lat_stack[1])
@@ -147,6 +154,7 @@ forvalues i = 2009(1)2011 {
 }
 
 sa "$pathout/RigaPanel_201504_all.dta", replace
+export delimited using "$pathexport\UGA_201504_all.csv", replace
 
 * Keep key regional information to merge with individual-level health data
 clear

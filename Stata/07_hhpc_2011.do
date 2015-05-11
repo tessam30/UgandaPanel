@@ -104,7 +104,7 @@ drop h14* sregion HH_2005 mult stratum wgt10 wgt09wosplits wgt09 dist_code distr
 * Collapse down to HH level
 include "$pathdo/copylabels.do"
 ds (HHID urban regurb year), not
-collapse (max) `r(varlist)' (mean) year, by(HHID urban)
+collapse (max)`r(varlist)' (mean) year, by(HHID urban)
 include "$pathdo/attachlabels.do"
 
 * Create a durable asset index based on core assets (not including house, land, building)
@@ -145,6 +145,8 @@ save "$pathout/hhpc_2011.dta", replace
 
 * Append all data and bring together
 pappend hhpc_2009 hhpc_2010 hhpc_2011 pa_hhpc
+
+sa "$pathout/hhpc_all.dta", replace
 
 log2html "$pathlog/07_hhpc_2011", replace
 capture log close
