@@ -25,12 +25,23 @@ destring HHID, gen(hh)
 cd "$pathout"
 dir
 
-local mfile health_all hhchar_all hhinfra_all shocks_all GeovarsMerged geoadmin hhpc_all
+local mfile health_all hhchar_all hhinfra_all shocks_all GeovarsMerged geoadmin hhpc_all 
 foreach x of local mfile {
 	merge 1:1 HHID year using "$pathout/`x'.dta", gen(mg_`x')
 	la var mg_`x' "Merge results with `x'"
 	}
 *end
+
+* Drop existing year interview variable
+drop yearInt
+
+merge 1:1 HHID year using "$pathout/interviewInfo_all.dta", gen(mg_int)
+
+* Generate a date grouping for tracking data
+egen intGroup = group(monthInt yearInt)
+g intDate = ym(yearInt, monthInt)
+format intDate %tm
+
 
 * order the data
 order mg*, last
@@ -68,7 +79,7 @@ replace stratumP = 2 if region == 4 & urban == 1
 
 
 * Retain key variables of interest for exploring with R and ArcGIS
-global sampling "urban month subRegion stratum stratumP region urban latitude lat_stack longitude lon_stack HHID hh year"
+global sampling "urban month subRegion stratum stratumP region urban latitude lat_stack longitude lon_stack HHID hh year intDate monthInt yearInt"
 global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount "
 global health2 "pctstunted underwgtCount pctunderwgt wastedCount pctwasted breastFedCount illness totIllness medCostspc"
 global hhchar "femhead agehead  ageheadsq hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
@@ -108,7 +119,7 @@ merge 1:1 hh year using "$pathout/RigaPanel.dta", gen(riga_mg)
 
 
 * Winsorize agwealth
-winsor2 agwealth, replace cuts(1 99.8)
+winsor2 agwealth, replace cuts(1 99.5)
 
 * Flag households that survive all three years
 g byte pFull = riga_mg == 3

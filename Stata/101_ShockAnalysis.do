@@ -23,6 +23,7 @@ tab year stratumP, sum (hazardShk)
 
 * Generate dummy for month in which hh was surveyed (accounts for a lot of variation)
 tab month, gen(mon)
+tab ssa_aez09, gen(ageco)
 
 global hhchar "femhead agehead ageheadsq marriedHohp gendMix mixedEth" 
 global agechar "hhsize under15 youth15to24 depRatio mlabor flabor"
@@ -30,6 +31,7 @@ global educhar "literateHoh literateSpouse educHoh"
 global wealth "landless agwealth wealth infraindex hhmignet" 
 global geo "dist_road dist_popcenter dist_market dist_borderpost srtm_uga"
 global month "mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12"
+global ageco "ageco1 ageco3 ageco4"
 tab stratumP, gen(region)
 
 
@@ -48,7 +50,7 @@ foreach x of varlist anyshock hazardShk healthShk goodcope badcope {
 est clear
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural09, title("Rural 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month region3 region5 region6 if year==2009 & urban==0, robust
+eststo Rural09, title("Rural 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2009 & urban==0, robust
 
 set more off
 local loc Central East North West
@@ -78,7 +80,7 @@ graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
 *********
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural10, title("Rural 2010"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month region3 region5 region6 if year==2010 & urban==0, robust
+eststo Rural10, title("Rural 2010"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2010 & urban==0, robust
 
 set more off
 local loc Central East North West
@@ -108,7 +110,7 @@ graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
 ************
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural11, title("Rural 2011"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month region3 region5 region6 if year==2011 & urban==0, robust
+eststo Rural11, title("Rural 2011"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2011 & urban==0, robust
 
 set more off
 local loc Central East North West
@@ -162,9 +164,14 @@ forvalues i=1/`n'{
 }
 *end
 
+
+est drop East North West Central
 esttab Central* East* North* West* Rural09 Rural10 Rural11 using "$pathreg/Regions_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
 */ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
 */ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011")
+
+
+* Trim ag wealth
 
 
 * Look at changes in wealth over time as captured by wealth index
@@ -175,8 +182,21 @@ forvalues i = 2009(1)2011 {
 	* Consumption
 	g tmp2`i' = pcexp if year==`i'
 	egen consump`i' = mean(tmp2`i'), by(HHID)
+	replace consump`i' = ln(consump`i')
 	
-	drop tmp`i'
+	* anyshocks
+	g tmp3`i' = anyshock if year==`i'
+	egen anyshock`i' = max(tmp3`i'), by(HHID)
+	
+	* hazard shocks
+	g tmp4`i' = hazardShk if year==`i'
+	egen hazshock`i' = max(tmp4`i'), by(HHID)
+	
+	* Ag wealth
+	g tmp5`i' = agwealth if year==`i'
+	egen agwealth`i' = mean(tmp5`i'), by(HHID)
+	
+	drop tmp`i' tmp2`i' tmp3`i' tmp4`i' tmp5`i'
 }
 *
 
@@ -186,4 +206,14 @@ twoway(scatter hhwealth2011 hhwealth2009 if year==2009 & hhwealth2010)(line hhwe
 twoway(scatter hhwealth2011 hhwealth2010 if year==2009 & hhwealth2010)(line hhwealth2009 hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
 
 * How does consumption change overtime
+twoway(scatter consump2010 consump2009 if year==2009 & hhwealth2010)(line consump2009 consump2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
 
+* How do asset indices change overtime?
+twoway(scatter agwealth2010 agwealth2009 if year==2009 & hhwealth2010)(line agwealth2009 agwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
+
+
+
+* Look into creating a waffle chart in excel of shocks
+egen dateGroup = group(month year)
+
+table intDate stratumP, c(mean hazardShk)
