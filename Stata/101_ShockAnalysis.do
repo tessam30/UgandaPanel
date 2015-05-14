@@ -28,7 +28,7 @@ tab ssa_aez09, gen(ageco)
 global hhchar "femhead agehead ageheadsq marriedHohp gendMix mixedEth" 
 global agechar "hhsize under15 youth15to24 depRatio mlabor flabor"
 global educhar "literateHoh literateSpouse educHoh"
-global wealth "landless agwealth wealth infraindex hhmignet" 
+global wealth "landless agwealth wealthindex_rur infraindex hhmignet" 
 global geo "dist_road dist_popcenter dist_market dist_borderpost srtm_uga"
 global month "mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12"
 global ageco "ageco1 ageco3 ageco4"
@@ -50,7 +50,8 @@ foreach x of varlist anyshock hazardShk healthShk goodcope badcope {
 est clear
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural09, title("Rural 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2009 & urban==0, robust
+eststo Rural09, title("Rural 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month /*
+*/ $ageco region3 region5 region6 if year==2009 & urban==0, robust
 
 set more off
 local loc Central East North West
@@ -70,7 +71,8 @@ esttab Rural09 Central East North West using "$pathreg/HazarShk09.txt", se star(
 coefplot Rural09, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 
-coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market /*
+*/ dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
 
@@ -80,7 +82,8 @@ graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
 *********
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural10, title("Rural 2010"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2010 & urban==0, robust
+eststo Rural10, title("Rural 2010"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco /*
+*/ region3 region5 region6 if year==2010 & urban==0, robust
 
 set more off
 local loc Central East North West
@@ -100,7 +103,8 @@ esttab Rural10 Central East North West using "$pathreg/HazarShk10.txt", se star(
 coefplot Rural09 Rural10, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 
-coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market /*
+*/ dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
 
@@ -110,7 +114,8 @@ graph export "$pathgraph/HazardShock_2010.png,", as(png) replace
 ************
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural11, title("Rural 2011"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2011 & urban==0, robust
+eststo Rural11, title("Rural 2011"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco /*
+*/ region3 region5 region6 if year==2011 & urban==0, robust
 
 set more off
 local loc Central East North West
@@ -130,17 +135,18 @@ esttab Rural11 Central East North West using "$pathreg/HazarShk11.txt", se star(
 esttab Rural09 Rural10 Rural11 using "$pathreg/HazShk_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
 */ mtitles("Rural 2009" "Rural 2010" "Rural2011")
 
-coefplot Rural09 Rural10 Rural11, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+coefplot Rural09 Rural10 Rural11, drop(_cons dist_road dist_popcenter dist_market dist_borderpost /*
+*/ srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 
-coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+coefplot Central || East || North || West, drop(_cons dist_road dist_popcenter dist_market /*
+*/ dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
 */ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 graph export "$pathgraph/HazardShock_2011.png,", as(png) replace
 
 
 **********
 * Create coefplots and exports for each region across three years
-
 set more off
 local loc Central East North West
 local n: word count `loc'
@@ -148,7 +154,8 @@ local j = 3
 forvalues i=1/`n'{
 	local a: word `i' of `loc'
 		forvalues year = 2009(1)2011 {
-			eststo `a'`year', title("`a' "): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month if year==`year' & urban==0 & stratumP==`j', robust
+			eststo `a'`year', title("`a' "): logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+			*/ $month if year==`year' & urban==0 & stratumP==`j', robust
 			fitstat
 			}
 	* Create forest plots for each region
@@ -165,10 +172,80 @@ forvalues i=1/`n'{
 *end
 
 
+* Run a final pooled probit model & OLS model (tried xtprobit and chi-squared test couldnt' reject; rho nearly 0 ~ 0.06)
+eststo pldProbit: logit hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, robust
+esttab pldProbit, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit")
+
+* Run a pooled model across each region
+eststo pldCenter: logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+			*/ $month i.year if urban==0 & stratumP==3, robust
+linktest
+eststo pldEast: logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+			*/ $month i.year if urban==0 & stratumP==4, robust
+linktest
+eststo pldNorth : logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+			*/ $month i.year if urban==0 & stratumP==5, robust
+linktest
+eststo pldWest: logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+			*/ $month i.year if urban==0 & stratumP==6, robust
+linktest
+
+esttab pld* using "$pathreg/Pooled_hzd_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) /*
+*/ label replace mtitles("Pooled Logit" "Pooled Center" "Pooled East" "Pooled North" "Pooled West")
+
+
+
 est drop East North West Central
 esttab Central* East* North* West* Rural09 Rural10 Rural11 using "$pathreg/Regions_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
 */ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
 */ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011")
+
+* Run same analysis for total shocks, but use a poisson model to account for count nature of data
+
+
+
+
+* Dietary diversity with poisson process -- may want to instrument for pcexp or use asset indices as proxy
+*Use a poisson with a zero-truncated model b/c the value zero cannot appear (households have to eat)
+
+eststo dietAll: tpoisson dietDiv $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2009 , ll(0) vce(robust)
+
+* Check distributions of all regions by year
+histogram dietDiv, by(year stratumP)
+
+est clear
+* Create coefplots and exports for each region across three years for dietary diversity 
+set more off
+local loc Central East North West
+local n: word count `loc'
+local j = 3
+forvalues i=1/`n'{
+	local a: word `i' of `loc'
+		forvalues year = 2009(1)2011 {
+			eststo `a'`year'Diet, title("`a' "): tpoisson dietDiv $hhchar $agechar $educhar $wealth $geo /*
+			*/ $month if year==`year' & urban==0 & stratumP==`j', ll(0) vce(robust)
+			}
+	* Create forest plots for each region
+	coefplot `a'2009Diet || `a'2010Diet || `a'2011Diet, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+	*/ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+	graph export "$pathgraph/`a'_all.png", as(png) replace
+	
+	* Export results to a txt file
+	esttab `a'* using "$pathreg/`a'_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace 	
+	
+	* Iterate StratumP to align with name
+	local j = `j'+1
+}
+*end
+
+esttab Central* East* North* West* dietAll using "$pathreg/Regions_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
+*/ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
+*/ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011")
+
+
+
+
+
 
 
 * Trim ag wealth
@@ -180,7 +257,7 @@ forvalues i = 2009(1)2011 {
 	egen hhwealth`i' = mean(tmp`i'), by(HHID)
 	
 	* Consumption
-	g tmp2`i' = pcexp if year==`i'
+	g tmp2`i' = pcexpend if year==`i'
 	egen consump`i' = mean(tmp2`i'), by(HHID)
 	replace consump`i' = ln(consump`i')
 	
@@ -201,7 +278,21 @@ forvalues i = 2009(1)2011 {
 *
 
 * How do asset indices change overtime?
-twoway(scatter hhwealth2010 hhwealth2009 if year==2009 & hhwealth2010)(line hhwealth2009 hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
+clonevar wealth_ind = wealthindex_rur
+separate wealth_ind, by(hazardShk)
+
+
+foreach x of varlist hhwealth2009 hhwealth2010 hhwealth2011 {
+	separate `x', by(hazardShk)
+	}
+*end
+
+twoway(scatter hhwealth2010 hhwealth2009 if year==2009 & hazardShk==0)(scatter /*
+*/ hhwealth2010 hhwealth2009 if year==2009 & hazardShk==1)(line hhwealth2009 /*
+*/ hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
+
+
+
 twoway(scatter hhwealth2011 hhwealth2009 if year==2009 & hhwealth2010)(line hhwealth2009 hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
 twoway(scatter hhwealth2011 hhwealth2010 if year==2009 & hhwealth2010)(line hhwealth2009 hhwealth2009, sort) if pFull,  xline(0, lwidth(thin) lcolor(gray))  yline(0, lwidth(thin) lcolor(gray))
 
@@ -217,3 +308,15 @@ twoway(scatter agwealth2010 agwealth2009 if year==2009 & hhwealth2010)(line agwe
 egen dateGroup = group(month year)
 
 table intDate stratumP, c(mean hazardShk)
+table year stratumP, c(mean hazardShk) 
+table year stratumP, c(mean anyshock ) row col
+table year stratumP, c(mean FCS ) row col
+table intDate stratumP, c(mean dietDiv  ) row
+table year stratumP, c(mean dietDiv ) row col
+
+* Look at expenditures, but first winsorize outliers
+winsor2 pcexp, replace cuts(1 99.8)
+g lnpcexp = ln(pcexpend)
+
+table year stratumP, c(mean lnpcexp ) row col
+table intDate stratumP, c(mean lnpcexp) row 
