@@ -20,6 +20,13 @@ drop _merge
 merge 1:1 hh using "$pathin/Uganda10_HH_INCOME.dta"
 drop _merge
 g year = 2009
+
+* Rename livestock variables
+ren TLU_sheep_indig TLU_sheep
+ren TLU_bulls_indig TLU_bulls
+ren TLU_goats_indig TLU_goats
+ren TLU_poultryindig TLU_poultry
+ren TLU_cattle_indig TLU_cattle
 save "$pathout/Uganda10_all.dta", replace
 
 * Load in the 2011 data
@@ -60,7 +67,7 @@ replace district = upper(district)
 /* Income = agr_wge + nonagr_wge + crop1 + livestock + selfemp + transfer + other == totincome1 */
 
 * Designate 3 cuts of data to be explored in mapping software
-global part "p_ag p_nonag p_nonfarm p_offarm p_onfarm p_trans TLU_total weight comm"
+global part "p_ag p_nonag p_nonfarm p_offarm p_onfarm p_trans TLU_total weight comm landquint quintile quinttot quinturb"
 global assets "totagprod totagsold TLU_sheep TLU_pigs TLU_poultry TLU_donkey TLU_rabbit TLU_beehive TLU_cattle"
 global share "sh1agr_wge sh1nonagr_wge sh1crop1 sh1livestock sh1selfemp sh1transfer sh1other"
 global ftype "fhh fmhh fshh lhh mhh divhh pcexp ptrack totincome1 totincome2"

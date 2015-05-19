@@ -29,8 +29,8 @@ setwd(wdw)
 vul <- tbl_df(read.csv("UGA_201504_all.csv", header = TRUE, sep =",", stringsAsFactors = FALSE))
 
 # - Filter out obs missing sampling information
-vul <- filter(vul, stratumP !="")
-vul <- filter(vul, educHoh !="")
+vul <- filter(vul, stratumP !="", educHoh !="", intDate !="")
+
 
 # Re-order stratumP to set Kampala as base
 vul$stratumP <- factor(vul$stratumP, levels = c("Kampala", "Other Urban", "North Rural", 
@@ -38,7 +38,7 @@ vul$stratumP <- factor(vul$stratumP, levels = c("Kampala", "Other Urban", "North
 vul$educHoh <- as.factor(vul$educHoh)
 vul$educHoh <- factor(vul$educHoh, levels = c("No Eduction", "Pre-primary", "Primary", "Post-primary",
                                               "Junior Techincal/Vocational ", "Lower Secondary", "Upper Secondary",
-                                              "Post-Secondary Specialized", "Tertiary")
+                                              "Post-Secondary Specialized", "Tertiary"))
 
 
 # Subset data for plotting/modeling
@@ -51,10 +51,12 @@ corr.d1 <- dplyr::select(vul1, anyshock, hazardShk, femhead, agehead, marriedHoh
                  under5, youth15to24, depRatio, mlabor, flabor, literateHoh,
                  literateSpouse, educHoh, landless, agwealth, wealth, infraindex, hhmignet,
                  dist_road, dist_popcenter, dist_market, dist_borderpost, srtm_uga, stratumP)
+
 corr.d2 <- dplyr::select(vul2, anyshock, hazardShk, femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
                  under5, youth15to24, depRatio, mlabor, flabor, literateHoh,
                  literateSpouse, educHoh, landless, agwealth, wealth, infraindex, hhmignet,
                  dist_road, dist_popcenter, dist_market, dist_borderpost, srtm_uga, stratumP)
+
 corr.d3 <- dplyr::select(vul3, anyshock, hazardShk,  femhead, agehead, marriedHohp, hhsize, gendMix, mixedEth,
                  under5, youth15to24, depRatio, mlabor, flabor, literateHoh,
                  literateSpouse, educHoh, landless, agwealth, wealth, infraindex, hhmignet,

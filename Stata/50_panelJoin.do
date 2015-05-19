@@ -80,10 +80,10 @@ replace stratumP = 2 if region == 4 & urban == 1
 
 * Retain key variables of interest for exploring with R and ArcGIS
 global sampling "urban month subRegion stratum stratumP region urban latitude lat_stack longitude lon_stack HHID hh year intDate monthInt yearInt"
-global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount "
+global health "FCS dietDiv FCS_categ stunting underweight wasting stuntedCount foodLack mealsTaken femRatio20_34 femRatio35_59"
 global health2 "pctstunted underwgtCount pctunderwgt wastedCount pctwasted breastFedCount illness totIllness medCostspc"
 global hhchar "femhead agehead  ageheadsq hhsize gendMix youth15to24 youth18to30 youth15to24m youth15to24f depRatio adultEquiv mixedEth orphan mosqNet mosNetChild"
-global agevar "under5 under15 under24 femCount20_34 hhmignet mlabor flabor wealthindex_rur wealthindex"
+global agevar "under5 under15 under24 femCount20_34 femCount35_59 hhmignet mlabor flabor wealthindex_rur wealthindex"
 global edvars "educHoh educAdult quitEduchoh quitEducPreg marriedHohp under5 mlaborShare flaborShare literateHoh literateSpouse" 
 global assets "electricity hutDwelling metalRoof latrineCovered latrineWash under5m under5f under15m under15f adultEquiv"
 global shocks "hazardShk priceShk employShk healthShk crimeShk assetShk anyshock totShock"
@@ -118,8 +118,10 @@ ren hhid hh
 merge 1:1 hh year using "$pathout/RigaPanel.dta", gen(riga_mg)
 
 
-* Winsorize agwealth
-winsor2 agwealth, replace cuts(1 99.5)
+* Winsorize agwealth and pcexp
+winsor2 agwealth, replace cuts(1 99.5) by(stratumP)
+clonevar pcexpend = pcexp
+winsor2 pcexpend, replace cuts (1 99.5) by(stratumP)
 
 * Flag households that survive all three years
 g byte pFull = riga_mg == 3
@@ -174,6 +176,35 @@ merge m:1 HHID year using "$pathout/RigaPanel_201504_all.dta", gen(health_merge)
 drop if health_merge==2
 
 export delimited using "$pathexport\UGA_201504_ind_all.csv", replace
+
+* Make graphs of malnutrition indicators
+global zscores "stunting wasting underweight"
+local i = 2009
+
+	foreach x of global zscores {
+	 graph twoway histogram `x'|| function y=normalden(x,0,1), by(year) /*
+		*/ range(`x') title("`x'") xtitle("z-score") ytitle("Density") /*
+		*/ legend(off)
+	 *gen below2_`x'`i' = (`x' < -2)
+	 *gen below3_`x'`i' = (`x' < -3)
+	 more
+	}
+
+
+tabstat $zscores below* , stat(mean sd) col(stat) by(year)
+
+* Make scatter plots of the indicators to see how correlated they are
+forvalues i=2009(1)2011 {
+	twoway(scatter stunting wasting) if year==`i', ylabel(-6 0 5) xlabel(-6 0 5)
+	more
+	
+	twoway(scatter stunting underweight) if year==`i', ylabel(-6 0 5) xlabel(-6 0 5)
+	more
+	
+	twoway(scatter wasting underweight) if year==`i', ylabel(-6 0 5) xlabel(-6 0 5)
+	more
+}
+*end
 
 log close
 

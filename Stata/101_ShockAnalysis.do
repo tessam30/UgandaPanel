@@ -205,15 +205,30 @@ esttab Central* East* North* West* Rural09 Rural10 Rural11 using "$pathreg/Regio
 
 
 
+* Create new exogneous variables that account for different types of livestock holdings
+* Winsorize TLU as TLU cattle are large
+clonevar TLUcattle = TLU_cattle
+winsor2 TLUcattle, replace cuts(1 99.5)
+
+global hhchar "femhead agehead ageheadsq marriedHohp gendMix mixedEth" 
+global agechar "hhsize under15 youth15to24 depRatio mlabor flabor"
+global educhar "literateHoh literateSpouse educHoh"
+global wealth "landless agwealth wealthindex_rur infraindex hhmignet" 
+global geo "dist_road dist_popcenter dist_market dist_borderpost srtm_uga"
+global month "mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12"
+global ageco "ageco1 ageco3 ageco4"
+global lvstk "TLU_sheep TLU_poultry TLUcattle"
+
 * Dietary diversity with poisson process -- may want to instrument for pcexp or use asset indices as proxy
 *Use a poisson with a zero-truncated model b/c the value zero cannot appear (households have to eat)
-
-eststo dietAll: tpoisson dietDiv $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if year==2009 , ll(0) vce(robust)
-
+est clear
+eststo dietAll09: tpoisson dietDiv $hhchar $agechar $educhar $wealth $geo $month $ageco $lvstk region3 region5 region6 if year==2009 , ll(0) vce(robust)
+eststo dietAll10: tpoisson dietDiv $hhchar $agechar $educhar $wealth $geo $month $ageco $lvstk region3 region5 region6 if year==2010 , ll(0) vce(robust)
+eststo dietAll11: tpoisson dietDiv $hhchar $agechar $educhar $wealth $geo $month $ageco $lvstk region3 region5 region6 if year==2011 , ll(0) vce(robust)
 * Check distributions of all regions by year
 histogram dietDiv, by(year stratumP)
 
-est clear
+
 * Create coefplots and exports for each region across three years for dietary diversity 
 set more off
 local loc Central East North West
@@ -223,7 +238,7 @@ forvalues i=1/`n'{
 	local a: word `i' of `loc'
 		forvalues year = 2009(1)2011 {
 			eststo `a'`year'Diet, title("`a' "): tpoisson dietDiv $hhchar $agechar $educhar $wealth $geo /*
-			*/ $month if year==`year' & urban==0 & stratumP==`j', ll(0) vce(robust)
+			*/ $month $lvstk if year==`year' & urban==0 & stratumP==`j', ll(0) vce(robust)
 			}
 	* Create forest plots for each region
 	coefplot `a'2009Diet || `a'2010Diet || `a'2011Diet, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
@@ -238,17 +253,17 @@ forvalues i=1/`n'{
 }
 *end
 
-esttab Central* East* North* West* dietAll using "$pathreg/Regions_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
+esttab Central* East* North* West* dietAll* using "$pathreg/Regions_diet_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
 */ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
 */ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011")
 
+* Now consider food security in the form of Food Consumption Scores
 
 
 
 
 
 
-* Trim ag wealth
 
 
 * Look at changes in wealth over time as captured by wealth index

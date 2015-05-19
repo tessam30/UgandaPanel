@@ -66,7 +66,7 @@ d$date <- as.Date(paste(c(d$year), c(d$month), c(1), sep="-"))
 head(subset(d, select = c(year, month, date )))
 
 # --- Subset data to remove any observations with no stratum information
-dsub <- filter(d, stratumP !="")
+dsub <- filter(d, stratumP !="", intDate!="")
 
 
 # --- Create a generic ggplot function for exploratory purposes
@@ -78,14 +78,29 @@ myplot <- function(x, y, z){
   g.spec
 }
 
-myplot("year", "totincome1", "stratumP")
+myplot("date", "badcope", "stratumP") + geom_point(alpha = 0.10)
+
+# --- Plot per capita consumption expenditures over the three years as reported by RIGA data
+dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
+                                                  "Central Rural", "Other Urban", "Kampala"))
+
+# Subset to only 3 regions - North, West, East
+target <- c("North Rural", "West Rural", "East Rural")
+dsub1 <- filter(dsub, stratumP %in% target)
+
+# - filter on urban
+dsub2 <- filter(dsub, urban == "Rural")
+
+ggplot(dsub2, aes(x = date, y = pcexpend, colour = stratumP)) + stat_smooth(method = "loess", size = 1, se = "TRUE") +
+         g.spec + geom_point(alpha=0.5) + facet_wrap(~ stratumP, ncol = 2) + scale_y_log10()
+
 
 # --- Food security indicators (FCS & dietary diversity) alongside stunting/wasting/underweight
 
 dsub$stratumP <- factor(dsub$stratumP, levels = c("West Rural", "North Rural", "East Rural", 
                                                   "Central Rural", "Other Urban", "Kampala"))
 ggplot(dsub, aes(x = date, y = dietDiv, colour = stratumP)) +
-  stat_smooth(method = "loess") + facet_wrap(~ stratumP, ncol = 6) +
+  stat_smooth(method = "loess") + facet_wrap(~ stratumP, ncol = 6) + geom_jitter(alpha=0.07) +
   g.spec + scale_x_date(breaks = date_breaks("12 months"),
                         labels = date_format("%Y")) +
   scale_y_continuous(breaks = seq(0, 12, 2), limits = c(0,12)) + # customize y-axis
