@@ -173,36 +173,84 @@ forvalues i=1/`n'{
 
 
 * Run a final pooled probit model & OLS model (tried xtprobit and chi-squared test couldnt' reject; rho nearly 0 ~ 0.06)
-eststo pldProbit: logit hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, robust
+eststo pldProbit: probit hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, robust
 esttab pldProbit, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit")
 
 * Run a pooled model across each region
-eststo pldCenter: logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+eststo pldCenter: probit hazardShk $hhchar $agechar $educhar $wealth $geo /*
 			*/ $month i.year if urban==0 & stratumP==3, robust
 linktest
-eststo pldEast: logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+eststo pldEast: probit hazardShk $hhchar $agechar $educhar $wealth $geo /*
 			*/ $month i.year if urban==0 & stratumP==4, robust
 linktest
-eststo pldNorth : logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+eststo pldNorth : probit hazardShk $hhchar $agechar $educhar $wealth $geo /*
 			*/ $month i.year if urban==0 & stratumP==5, robust
 linktest
-eststo pldWest: logit hazardShk $hhchar $agechar $educhar $wealth $geo /*
+eststo pldWest: probit hazardShk $hhchar $agechar $educhar $wealth $geo /*
 			*/ $month i.year if urban==0 & stratumP==6, robust
 linktest
 
 esttab pld* using "$pathreg/Pooled_hzd_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) /*
 */ label replace mtitles("Pooled Logit" "Pooled Center" "Pooled East" "Pooled North" "Pooled West")
 
-
-
 est drop East North West Central
 esttab Central* East* North* West* Rural09 Rural10 Rural11 using "$pathreg/Regions_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
 */ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
 */ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011")
 
-* Run same analysis for total shocks, but use a poisson model to account for count nature of data
+* Run same analysis for health shocks (may not be realiable due to variation w/in regions and some var drops due to multicollinearity)
+set more off
+local loc Central East North West
+local n: word count `loc'
+local j = 3
+forvalues i=1/`n'{
+	local a: word `i' of `loc'
+		forvalues year = 2009(1)2011 {
+			eststo hlt`a'`year', title("`a' "): logit healthShk $hhchar $agechar $educhar $wealth $geo /*
+			*/ $month if year==`year' & urban==0 & stratumP==`j', robust
+			fitstat
+			linktest
+			}
+	* Create forest plots for each region
+	coefplot hlt`a'2009 || hlt`a'2010 || hlt`a'2011, drop(_cons dist_road dist_popcenter dist_market /*
+	*/ dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+	*/ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+	graph export "$pathgraph/hlt`a'_all.png", as(png) replace
+	
+	* Export results to a txt file
+	esttab hlt`a'* using "$pathreg/hlt`a'_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace 	
+	
+	* Iterate StratumP to align with name
+	local j = `j'+1
+}
+*end
 
+* Estimate global models for 2009/2011 of health shocks
+eststo hlt_all09, title("Health 2009"): logit healthShk $hhchar $agechar $educhar /*
+*/ $wealth $geo $month $ageco region3 region5 region6 if year==2009 & urban==0, robust
 
+eststo hlt_all10, title("Health 2010"): logit healthShk $hhchar $agechar $educhar /*
+*/ $wealth $geo $month $ageco region3 region5 region6 if year==2010 & urban==0, robust
+
+eststo hlt_all11, title("Health 2011"): logit healthShk $hhchar $agechar $educhar /*
+*/ $wealth $geo $month $ageco region3 region5 region6 if year==2011 & urban==0, robust
+
+eststo hlt_all, title("Health Pooled"): logit healthShk $hhchar $agechar $educhar /*
+*/ $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, robust
+
+coefplot hlt_all09 || hlt_all10 || hlt_all11 || hlt_all, drop(_cons dist_road dist_popcenter dist_market /*
+	*/ dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+	*/ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+
+eststo pldProbitHlth: probit hazardShk $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, robust
+esttab pldProbitHlth, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit")
+
+coefplot pldProbitHlth, drop(_cons dist_road dist_popcenter dist_market dist_borderpost srtm_uga mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12)/*
+*/ xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+
+esttab hltCentral* hltEast* hltNorth* hltWest* hlt_all* using "$pathreg/Regions_hlt_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace /*
+*/ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
+*/ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011" "Pooled")
 
 
 * Create new exogneous variables that account for different types of livestock holdings
