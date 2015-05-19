@@ -36,6 +36,10 @@ foreach x of local mfile {
 drop yearInt
 
 merge 1:1 HHID year using "$pathout/interviewInfo_all.dta", gen(mg_int)
+g intTag = (monthInt == 1 & yearInt == 2013)
+replace monthInt = 12 if intTag
+replace yearInt = 2012 if intTag
+
 
 * Generate a date grouping for tracking data
 egen intGroup = group(monthInt yearInt)

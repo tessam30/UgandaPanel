@@ -57,16 +57,16 @@ g.spec <- theme(legend.position = "none", legend.title=element_blank(),
                 panel.margin = unit(2, "lines")) # Move plot title up
 
 
-# --- Generate a start date
-startDate <- as.Date("2009-01-01")
-xm <- seq(startDate, by = "month", length.out = 36)
+# --- Generate a start date 
+# startDate <- as.Date("2009-01-01")
+# xm <- seq(startDate, by = "month", length.out = 36)
 
 # --- Create a date for each observation in panel
-d$date <- as.Date(paste(c(d$year), c(d$month), c(1), sep="-"))
+d$date <- as.Date(paste(c(d$yearInt), c(d$monthInt), c(1), sep="-"))
 head(subset(d, select = c(year, month, date )))
 
 # --- Subset data to remove any observations with no stratum information
-dsub <- filter(d, stratumP !="", intDate!="")
+dsub <- filter(d, stratumP !="")
 
 
 # --- Create a generic ggplot function for exploratory purposes
@@ -78,11 +78,19 @@ myplot <- function(x, y, z){
   g.spec
 }
 
-myplot("date", "badcope", "stratumP") + geom_point(alpha = 0.10)
+myplot("date", "pcexp", "stratumP") + geom_point(alpha = 0.10) + scale_y_log10()
 
 # --- Plot per capita consumption expenditures over the three years as reported by RIGA data
 dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
                                                   "Central Rural", "Other Urban", "Kampala"))
+
+ggplot(dsub, aes(x = date, y = pcexpend, colour = stratumP)) + 
+  stat_smooth(method = "loess", size = 1, se = "TRUE") +
+  g.spec + geom_point(alpha=0.5) + facet_wrap(~ stratumP, ncol = 2)+ scale_y_log10()
+
+# Show that per capita expenditures are declining each year
+ggplot(dsub, aes(x = date, y = totincome1, colour = stratumP)) + stat_smooth(method = "loess", size = 1, se = "TRUE") +
+  g.spec  + facet_wrap(~ stratumP, ncol = 2)+ scale_y_log10()
 
 # Subset to only 3 regions - North, West, East
 target <- c("North Rural", "West Rural", "East Rural")
@@ -97,35 +105,39 @@ ggplot(dsub2, aes(x = date, y = pcexpend, colour = stratumP)) + stat_smooth(meth
 
 # --- Food security indicators (FCS & dietary diversity) alongside stunting/wasting/underweight
 
+stat.set <- stat_smooth(method = "loess", size = 1, span = 1, alpha = 0.25) 
+
 dsub$stratumP <- factor(dsub$stratumP, levels = c("West Rural", "North Rural", "East Rural", 
                                                   "Central Rural", "Other Urban", "Kampala"))
 ggplot(dsub, aes(x = date, y = dietDiv, colour = stratumP)) +
-  stat_smooth(method = "loess") + facet_wrap(~ stratumP, ncol = 6) + geom_jitter(alpha=0.07) +
+  stat.set +
+  facet_wrap(~ stratumP, ncol = 6) +
+  geom_jitter(alpha=0.1, position = position_jitter(height=0.3)) +
   g.spec + scale_x_date(breaks = date_breaks("12 months"),
                         labels = date_format("%Y")) +
-  scale_y_continuous(breaks = seq(0, 12, 2), limits = c(0,12)) + # customize y-axis
+  scale_y_continuous(breaks = seq(0, 12, 1), limits = c(0,12)) + # customize y-axis
   labs(x = "", y = "Average number of food groups consumed\n", # label y-axis and create title
        title = "Households in Western Rural zones lag behind in dietary diversity scores.", size = 13)
   
 # --- Add accompanying distribution plot to show how data cluster
-ggplot(dsub, aes(dietDiv, colour = year)) + facet_wrap(year ~stratumP, ncol = 6 ) + 
+ggplot(na.omit(dsub), aes(dietDiv, fill = stratumP)) + facet_wrap(stratumP ~ yearInt, ncol = 6 ) + 
   geom_density(aes(y = ..count..)) + g.spec + scale_colour_brewer(palette="Set2") # apply faceting and color palette
 
 # --- Add FCS indicators by region
-dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
+dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "East Rural", "West Rural", 
                                                   "Central Rural", "Other Urban", "Kampala"))
 
 ggplot(dsub, aes(x = date, y = FCS, colour = stratumP)) + 
-  stat_smooth(method = "loess", size = 1.25) + facet_wrap(~ stratumP, ncol = 6) + geom_point(alpha=0.15)+ 
+  stat.set + facet_wrap(~ stratumP, ncol = 6) + geom_point(alpha=0.15)+ 
   g.spec + scale_x_date(breaks = date_breaks("12 months"),
                         labels = date_format("%Y")) +
   scale_y_continuous(breaks = seq(0, 110, 10 ), limits = c(0,110)) + # customize y-axis
-  labs(x = "", y = "Average number of food groups consumed\n", # label y-axis and create title
+  labs(x = "", y = "Average food consumption score\n", # label y-axis and create title
        title = "Households in North rural zones lag behind in food consumption scores.", size = 13)
 
-# Plot distribution of data by years (not that interesting)
-dsub$fyear <- as.factor(dsub$year)
-ggplot(dsub, aes(x = FCS, fill = fyear)) + geom_density(aes(y = ..count..), alpha=0.3) 
+# # Plot distribution of data by years (not that interesting)
+# dsub$fyear <- as.factor(dsub$year)
+# ggplot(dsub, aes(x = FCS, fill = fyear)) + geom_density(aes(y = ..count..), alpha=0.3) 
 
 # --- Stunting indicators at individual level
 # --- Read in as a dplyr data frame tbl
@@ -134,48 +146,69 @@ d.ind <- tbl_df(read.csv("UGA_201504_ind_all.csv"))
 # Look at stunting by months of age across regions
 # First cross-tabulate data to get percentages for each region
 library(gmodels)
-d.indf <- filter(d.ind, stunted!="NA", stratumP!="") 
+d.indf <- filter(d.ind, stunted!="NA", stratumP!="", yearInt!="NA") 
 
 CrossTable(d.indf$stunted, d.indf$stratumP)
 
 # Relevel factors for stratum to get order on graphics
+
 d.indf$stratumP <- factor(d.indf$stratumP, levels = c("West Rural", "East Rural", "North Rural", 
                                                   "Central Rural", "Kampala", "Other Urban"))
 
-# Graph smoothed stunting rates with data jittered  
-ggplot(d.indf[d.indf$year == 2009, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
-  stat_smooth(method = "loess", linesize = 1.5) +
-  facet_wrap(~stratumP, ncol=3) + 
-  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
-  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "Child stunting was most prevalent in the West Rural region in 2009.", size = 13)
 
-
-# Graph smoothed stunting rates with data jittered  
-ggplot(d.indf[d.indf$year == 2010, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
-  stat_smooth(method = "loess", linesize = 1.5) +
-  facet_wrap(~stratumP, ncol=3) + 
-  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
-  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "Child stunting was most prevalent in the West Rural region in 2010", size = 13)
-
-
-# Graph smoothed stunting rates with data jittered  
-ggplot(d.indf[d.indf$year == 2011, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
-  stat_smooth(method = "loess", linesize = 1.5) +
-  facet_wrap(~stratumP, ncol=3) + 
-  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
-  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "Child stunting was most prevalent in the West Rural region in 2011", size = 13)
+# --- First plot data overtime and ignore age
+ggplot(d.indf, aes(x = stunting)) + geom_density(aes(fill = stratumP, y = ..count..)) + 
+  facet_wrap(stratumP~year, ncol = 3) +
+  geom_vline(xintercept = c(-2.0), alpha = 0.25, linetype ="dotted", size = 1) + g.spec
 
 
 # Graph smoothed stunting rates with data jittered  
 ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = stratumP)) + 
-  stat_smooth(method = "loess", linesize = 1.5) +
-  facet_wrap(stratumP, ncol=3) + 
-  g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
+  stat.set +
+  facet_wrap(stratumP ~ year, ncol=3) + 
+  g.spec + geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
+  # customize y-axis
   labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "Child stunting was most prevalent in the West Rural region in 2011", size = 13)
+       title = "Child stunting was most prevalent in the West Rural region in 2009.", size = 13)
+
+# Graph smoothed wasting rates with data jittered  
+ggplot(d.indf, aes(x = ageMonths, y = underwgt, colour = stratumP)) + 
+  stat.set +
+  facet_wrap(stratumP ~ year, ncol=3) + 
+  g.spec + geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
+  # customize y-axis
+  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+       title = "Child stunting was most prevalent in the West Rural region in 2009.", size = 13)
+
+
+# Scatter the data to see how indicators correlate
+
+# --- First filter data to only get those w/ regional info
+target <- c("West Rural", "East Rural", "North Rural", "Central Rural", "Kampala", "Other Urban")
+ggplot(filter(d.indf, stratumP %in% target), aes(x = stunting, y = underweight)) + 
+         geom_point()  + stat_binhex() + stat_smooth(method="loess", span=1) + facet_wrap(~year)
+
+ggplot(filter(d.indf, stratumP %in% target), aes(x = stunting, y = wasting)) + 
+  geom_point()  + stat_binhex() + stat_smooth(method="loess", span=1) + facet_wrap(~year)
+
+# # Graph smoothed stunting rates with data jittered  
+# ggplot(d.indf[d.indf$year == 2010, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
+#   stat_smooth(method = "loess", linesize = 1.5) +
+#   facet_wrap(~stratumP, ncol=3) + 
+#   g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
+#   labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+#        title = "Child stunting was most prevalent in the West Rural region in 2010", size = 13)
+# 
+# 
+# # Graph smoothed stunting rates with data jittered  
+# ggplot(d.indf[d.indf$year == 2011, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 
+#   stat_smooth(method = "loess", linesize = 1.5) +
+#   facet_wrap(~stratumP, ncol=3) + 
+#   g.spec + geom_point(alpha=0.15, jitter= TRUE) + # customize y-axis
+#   labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+#        title = "Child stunting was most prevalent in the West Rural region in 2011", size = 13)
+
+
 
 
 
@@ -192,43 +225,58 @@ dsub.ten <- subset(d, year== 2010)
 dsub.elev <- subset(d, year== 2011)
 
 # --- Plot conditional density of shocks versus various dep vars
-cdplot(crimeShock ~ depRatio, data = dsub.nine)
+cdplot(hzdShock ~ infraindex, data = dsub.nine)
 
 
 
-# --- Hazard plots
-dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "Central Rural", "West Rural", 
-                                                  "East Rural", "Other Urban", "Kampala"))
+# --- Plotting shocks
+stat.set1 <- stat_smooth(method = "loess", size = 1, se = "TRUE", span = 1, alpha = 0.125)
 
 
-# --- Create a plot that fits a binomial glm function to the data for each region
-ggplot(filter(dsub, hazardShk!="NA"), aes(x = date, y = hazardShk, colour = stratumP)) +  facet_wrap(~stratumP, ncol = 6) + 
-  stat_smooth(method = "glm", family = "binomial", size = 1.5, geom = "line", ) + 
+
+dsub$stratumP <- factor(dsub$stratumP, levels = c("Central Rural", "North Rural", "East Rural", 
+                                                  "West Rural", "Other Urban", "Kampala"))
+
+
+# --- Create a plot for total shocks by region, sorted from largest to smallest
+ggplot(filter(dsub, totShock!="NA"), aes(x = date, y = totShock, colour = stratumP)) +  
+  facet_wrap(~stratumP, ncol = 3) + 
+  stat.set1 +
+  g.spec  + scale_y_continuous(breaks = seq(0, 3, 1), limits = c(0,3)) +
+  labs(x = "", y = "Total shocks reported (average) \n", # label y-axis and create title
+    title = "Total households shocks, on average, are declining throughout Uganda", size = 13) +
+  geom_jitter(position = position_jitter(height=0.25), alpha = 0.25)
+
+
+# --- Create plot for hazard shocks w/ data jittered at top and bottom
+dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "Central Rural", "East Rural", 
+                                                  "West Rural", "Other Urban", "Kampala"))
+
+ggplot(filter(dsub, hazardShk!="NA"), aes(x = date, y = hazardShk, colour = stratumP)) +  
+  facet_wrap(~stratumP, ncol = 3) +
+  stat.set1 +
   g.spec + scale_y_continuous(lim=c(0,1)) + 
   scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
   geom_hline(yintercept = c(0.5), linetype = "dotted", size = 1, alpha = 0.125) +
-  geom_hline(yintercept = c(0.25, 0.75), linetype = "dotted", size = 1, alpha = 0.10) 
+  geom_jitter(position = position_jitter(height = 0.05), alpha = 0.25) 
   
 
 # --- Same plot for health shocks, but first reorder facets for plotting in order
 dsub$stratumP <- factor(dsub$stratumP, levels = c("East Rural", "North Rural", "Central Rural", 
                                             "West Rural", "Other Urban", "Kampala"))
 
-end <- max(dsub$date)
-ggplot(dsub, aes(x = date, y = healthShk, colour = stratumP)) + facet_wrap(~stratumP, ncol = 3) + 
-  stat_smooth(method = "glm", family = "binomial", size = 1, geom = "line") + 
+ggplot(dsub, aes(x = date, y = healthShk, colour = stratumP)) + 
+  facet_wrap(~stratumP, ncol = 3) + 
+  stat.set1 +
   g.spec + scale_y_continuous(limits = c(0,1)) + 
   scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
-  geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = .125)
+  geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = .125)+
+  geom_jitter(position = position_jitter(height = 0.05), alpha = 0.25) 
+
+# The analysis of remaining shocks shows little variation over time /space
 
 
-# --- same plot for crime shocks
-dsub$stratumP <- factor(dsub$stratumP, levels = c("Central Rural", "East Rural", "Other Urban", 
-                                                  "North Rural", "Kampala", "West Rural"))
 
-ggplot(dsub, aes(x = date, y = crimeShk, colour = stratumP)) + facet_wrap(~stratumP, ncol = 3) + 
-  stat_smooth(method = "glm", family = "binomial", size = 1, geom = "line") + 
-  g.spec + scale_x_date(breaks = date_breaks("12 months"), labels = date_format("%Y"))
 
 
 # --- Look at dependency ratios overtime and resort to order
