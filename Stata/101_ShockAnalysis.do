@@ -305,9 +305,9 @@ esttab Central* East* North* West* dietAll* using "$pathreg/Regions_diet_all.txt
 */ mtitles("Central 2009" "Central 2010" "Central 2011" "East 2009" "East 2010" "East 2011"  "North 2009" "North 2010" "North 2011" /*
 */ "West 2009" "West 2010" "West 2011" "All 2009" "All 2010" "All 2011")
 
-* Now consider food security in the form of Food Consumption Scores
+* Now consider food security in the form of Food Consumption Scores (can run f.e. model here)
 
-
+xtreg FCS $hhchar $agechar $educhar $wealth $geo $month $lvstk if year==`year' & urban==0 & stratumP==`j', ll(0) vce(robust)
 
 
 
