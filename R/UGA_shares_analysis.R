@@ -58,47 +58,28 @@ dpi.out <- c(300)
 # p_nonfarm = nonagr_wage + self emp
 # p_trans = other + transfers
 
-d.partic <- as.data.frame(select(dsub, p_ag, p_nonfarm,p_trans, HHID, date, stratumP, agehead))
+d.partic <- as.data.frame(select(dsub, p_ag, p_nonfarm,p_trans, HHID, date, stratumP, agehead, femhead))
 
 # Sort the data for plotting
 d.partic$stratumP <- factor(d.partic$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
                                                         "Central Rural", "Other Urban", "Kampala"))
 
-
-names(d.partic) <- c("Agriculture", "Non-Agriculture", "Transfers", "id", "date", "Region", "age")
-d.particm <- melt(d.partic, id=c("id", "date", "Region", "age"))
-
+names(d.partic) <- c("Agriculture", "Non-Agriculture", "Transfers", "id", "date", "Region", "age", "female")
+d.particm <- melt(d.partic, id=c("id", "date", "Region", "age", "female"))
 
 p <- ggplot(d.particm, aes(x = date, y = value, colour = variable)) +
   facet_wrap(~Region, ncol = 6) +   stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + 
   theme(legend.position = "top", legend.title=element_blank(), 
-        panel.border = element_blank(), legend.key = element_blank(), 
-        legend.text = element_text(size = 14), #Customize legend
-        plot.title = element_text(hjust = 0, size = 17, face = "bold"), # Adjust plot title
-        panel.background = element_rect(fill = "white"), # Make background white 
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), #remove grid    
-        axis.text.y = element_text(hjust = -0.5, size = 14, colour = dgrayL), #soften axis text
-        axis.text.x = element_text(hjust = .5, size = 14, colour = dgrayL),
-        axis.ticks.y = element_blank(), # remove y-axis ticks
-        axis.title.y = element_text(colour = dgrayL),
-        #axis.ticks.x=element_blank(), # remove x-axis ticks
-        #plot.margin = unit(c(1,1,1,1), "cm"),
-        plot.title = element_text(lineheight = 1 ), # 
-        panel.grid.major = element_blank(), # remove facet formatting
-        panel.grid.minor = element_blank(),
-        strip.background = element_blank(),
-        strip.text.x = element_text(size = 13, colour = dgrayL, face = "bold"), # format facet panel text
-        panel.border = element_rect(colour = "black"),
-        panel.margin = unit(2, "lines")) + # Move plot title up
+        panel.border = element_blank(), legend.key = element_blank()) +
   scale_y_continuous(limits = c(0,1)) + 
-  scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
+    scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
   geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = transp) +
   labs(x = "", y = "Percent of households participating in activity \n", # label y-axis and create title
-       title = "Participation in non-agriculural activities appears to decline across Uganda", size = 13) +
+       title = "", size = 13) +
   scale_color_brewer(palette="Set2")
 #geom_jitter(position = position_jitter(height = 0.05), alpha = transp) 
 print(p)
-remove(d.particm, d.partic)
+
 
 # -- Look into how this varies by age
 p <- ggplot(d.particm, aes(x = age, y = value, colour = variable)) +
@@ -113,19 +94,32 @@ p <- ggplot(d.particm, aes(x = age, y = value, colour = variable)) +
 #geom_jitter(position = position_jitter(height = 0.05), alpha = transp) 
 print(p)
 
+# -- Look into how this varies by female headedness
+d.particm <- filter(d.particm, female != "NA")
+p <- ggplot(transform(d.particm, female = c("Male headed", "Female headed")[as.numeric(female)]) , aes(x = age, y = value, colour = variable)) +
+  facet_wrap(~female, ncol = 2) + stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + 
+  theme(legend.position = "top", legend.title=element_blank(), 
+        panel.border = element_blank(), legend.key = element_blank()) +
+  geom_jitter(alpha = 0.1, position = position_jitter(height=0.05)) +
+  scale_y_continuous(limits = c(0,1)) + 
+  geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = transp) +
+  labs(x = "Age of household head", y = "Percent of households participating in activity \n") +
+  scale_color_brewer(palette="Set2")
+  #geom_jitter(position = position_jitter(height = 0.05), alpha = transp) 
+print(p)
 
-
-
+remove(d.particm, d.partic)
 
 
 # How do shares of income vary across regions?
 d.incsh <- as.data.frame(select(dsub, sh1agr_wge, sh1nonagr_wge, sh1crop1, sh1livestock, 
-          sh1selfemp, sh1transfer, sh1other, date, HHID, stratumP, pcexpend, yearInt, totincome1, agehead))
-names(d.incsh) <- c("Ag-Wage", "Non-Ag", "Crops", "livestock", "Self-Employment", "Transfers", "Other", "date", "id", "Region", "Expenditures", "Year", "Income", "age")
+          sh1selfemp, sh1transfer, sh1other, date, HHID, stratumP, pcexpend2011, yearInt, 
+          totincome2011, agehead, femhead))
+names(d.incsh) <- c("Ag-Wage", "Non-Ag", "Crops", "livestock", "Self-Employment", "Transfers", "Other", "date", "id", "Region", "Expenditures", "Year", "Income", "age", "female")
 d.incsh <- filter(d.incsh, Year != "NA")
 
 
-d.incshm <- melt(d.incsh, id = c("id", "date", "Region", "Expenditures", "Year", "Income", "age"))
+d.incshm <- melt(d.incsh, id = c("id", "date", "Region", "Expenditures", "Year", "Income", "age", "female"))
 
 d.incshm$Region <- factor(d.incshm$Region, levels = c("West Rural", "East Rural", "North Rural", 
                                                           "Central Rural", "Other Urban", "Kampala"))
@@ -136,19 +130,20 @@ p <- ggplot(d.incshm, aes(x = date, y = value, colour = variable)) +
   scale_y_continuous(limits = c(-0, 1))+
   geom_jitter(alpha = 0.1) + theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank()) +
   labs(x = "", y = "Income share \n", # label y-axis and create title
-       title = "Crop income dominates in the West and East; Self-employment is on the rise", size =13) 
+       title ="", size =13) 
 p
 
 
 # Self-employment income shares constitute the largest value for the highest earners
 pp <- ggplot(d.incshm, aes(x = Income, y = value, colour = variable)) +
-  stat_smooth(method = "loess", alpha = 0.2, size = 1.5, span = 1) + 
+  stat_smooth(method = "loess", alpha = 0.0, size = 1.5, span = 1) + 
   scale_y_continuous(limits = c(-0, 1)) + scale_x_log10() +
   geom_jitter(alpha=0.15) + facet_wrap(~Region, ncol = 3) +
   theme(legend.position = "top", legend.title=element_blank(), panel.border = element_blank(), legend.key = element_blank()) +
   labs(x = "Total Income", y = "Income share \n")
 pp
 
+# These patterns hold across time
 pp <- ggplot(d.incshm, aes(x = Income, y = value, colour = variable)) +
   stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + 
   scale_y_continuous(limits = c(-0, 1)) + scale_x_log10() +
@@ -156,6 +151,19 @@ pp <- ggplot(d.incshm, aes(x = Income, y = value, colour = variable)) +
   theme(legend.position = "top", legend.title = element_blank(), legend.key = element_blank()) +
   labs(x = "Total Income", y = "Income share \n")
 pp
+
+# But varies by gender
+d.incshm <- filter(d.incshm, female != "NA")
+
+pp <- ggplot(transform(d.incshm, female = c("Male headed", "Female headed")[as.numeric(female)]), 
+             aes(x = Income, y = value, colour = variable)) +
+  stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + 
+  scale_y_continuous(limits = c(-0, 1)) + scale_x_log10() +
+  geom_jitter(alpha=0.15) + facet_wrap(~female, ncol = 4) +
+  theme(legend.position = "top", legend.title = element_blank(), legend.key = element_blank()) +
+  labs(x = "Total Income", y = "Income share \n")
+pp
+
 
 
 pp <- ggplot(d.incshm, aes(x = Expenditures, y = value, colour = variable)) +

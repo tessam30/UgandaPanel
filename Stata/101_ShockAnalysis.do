@@ -36,8 +36,11 @@ tab stratumP, gen(region)
 
 * Export a cut of data to WVU peoples for GWR
 preserve
-keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk anyshock totShock goodcope badcope $hhchar $agechar $educhar $wealth $geo pFull urban
-
+keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk /*
+*/ anyshock totShock goodcope badcope $hhchar $agechar $educhar $wealth $geo /*
+*/ pFull p_ag  p_nonfarm p_trans urban pcexpend2011 illness TLU_total
+export delimited "$pathexport/UGA_201505_GWRcut.csv", replace
+restore
 
 
 * Check that variables are available across years
