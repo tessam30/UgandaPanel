@@ -34,6 +34,11 @@ global month "mon1 mon2 mon3 mon4 mon5 mon6 mon8 mon9 mon10 mon11 mon12"
 global ageco "ageco1 ageco3 ageco4"
 tab stratumP, gen(region)
 
+* Export a cut of data to WVU peoples for GWR
+preserve
+keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk anyshock totShock goodcope badcope $hhchar $agechar $educhar $wealth $geo pFull urban
+
+
 
 * Check that variables are available across years
 forvalues i = 2009(1)2011 {

@@ -40,6 +40,13 @@ g intTag = (monthInt == 1 & yearInt == 2013)
 replace monthInt = 12 if intTag
 replace yearInt = 2012 if intTag
 
+* Replace missing data using month with numerous interviews
+replace monthInt = 2 if year == 2009 & yearInt == .
+replace monthInt = 2 if year == 2010 & yearInt == .
+
+replace yearInt = 2010 if year == 2009 & yearInt == .
+replace yearInt = 2011 if year == 2010 & yearInt == .
+
 
 * Generate a date grouping for tracking data
 egen intGroup = group(monthInt yearInt)
@@ -158,6 +165,14 @@ g rastUnif09 = uniform() if year==2009
 g rastUnif10 = uniform() if year==2010
 g rastUnif11 = uniform() if year==2011 
 
+* Create 2011 totincome and expenditure variables
+merge m:m yearInt  using "$pathout/UGA_cpi2011.dta", gen(cpi_merge)
+
+
+* deflate/inflate the current income and expenditures data
+g totincome2011 = (totincome1 / cpi2011) * 100
+g pcexpend2011 = (pcexpend / cpi2011) * 100
+
 preserve
 keep hh latitude longitude rastUnif09 rastUnif10 rastUnif11 year
 forvalues i = 2009(1)2011 {
@@ -195,7 +210,7 @@ local i = 2009
 	}
 
 
-tabstat $zscores below* , stat(mean sd) col(stat) by(year)
+*tabstat $zscores below* , stat(mean sd) col(stat) by(year)
 
 * Make scatter plots of the indicators to see how correlated they are
 forvalues i=2009(1)2011 {
@@ -209,6 +224,21 @@ forvalues i=2009(1)2011 {
 	more
 }
 *end
+
+* Create a cut of data for interpolation in ArcGIS - Caveat; households with children
+* may not be respresented adequately due to sample design *
+drop if stunted == .
+
+egen stunted_HH = max(stunted), by(HHID year)
+egen stunted_Tot = total(stunted), by(HHID year)
+
+collapse (max) stunted (mean) stunted_Tot latitude longitude , by(HHID year)
+
+export delimited using "$pathexport\UGA_201504_stuntingHH.csv", replace
+
+* Create a tag that can be filtered to highlight households with stunted children/ by year
+
+
 
 log close
 
