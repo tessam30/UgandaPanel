@@ -58,7 +58,7 @@ dpi.out <- c(300)
 # p_nonfarm = nonagr_wage + self emp
 # p_trans = other + transfers
 
-d.partic <- as.data.frame(select(dsub, p_ag, p_nonfarm,p_trans, HHID, date, stratumP, agehead, femhead))
+d.partic <- as.data.frame(select(dsub, p_ag, p_nonfarm, p_trans, HHID, date, stratumP, agehead, femhead))
 
 # Sort the data for plotting
 d.partic$stratumP <- factor(d.partic$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
@@ -111,20 +111,26 @@ print(p)
 remove(d.particm, d.partic)
 
 
+
+# --- INCOME SHARES ----
 # How do shares of income vary across regions?
 d.incsh <- as.data.frame(select(dsub, sh1agr_wge, sh1nonagr_wge, sh1crop1, sh1livestock, 
           sh1selfemp, sh1transfer, sh1other, date, HHID, stratumP, pcexpend2011, yearInt, 
           totincome2011, agehead, femhead))
+
+# - rename a few variables
 names(d.incsh) <- c("Ag-Wage", "Non-Ag", "Crops", "livestock", "Self-Employment", "Transfers", "Other", "date", "id", "Region", "Expenditures", "Year", "Income", "age", "female")
 d.incsh <- filter(d.incsh, Year != "NA")
 
 
 d.incshm <- melt(d.incsh, id = c("id", "date", "Region", "Expenditures", "Year", "Income", "age", "female"))
-
 d.incshm$Region <- factor(d.incshm$Region, levels = c("West Rural", "East Rural", "North Rural", 
                                                           "Central Rural", "Other Urban", "Kampala"))
 
+d.incshm$female <- factor(d.incshm$female, levels = c(0, 1), 
+                          labels = c("Male Headed", "Female Headed"))
 
+# 
 p <- ggplot(d.incshm, aes(x = date, y = value, colour = variable)) +
   stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + facet_wrap(~Region, ncol = 6) +
   scale_y_continuous(limits = c(-0, 1))+
@@ -155,8 +161,7 @@ pp
 # But varies by gender
 d.incshm <- filter(d.incshm, female != "NA")
 
-pp <- ggplot(transform(d.incshm, female = c("Male headed", "Female headed")[as.numeric(female)]), 
-             aes(x = Income, y = value, colour = variable)) +
+pp <- ggplot(d.incshm, aes(x = Income, y = value, colour = variable)) +
   stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + 
   scale_y_continuous(limits = c(-0, 1)) + scale_x_log10() +
   geom_jitter(alpha=0.15) + facet_wrap(~female, ncol = 4) +
@@ -165,15 +170,23 @@ pp <- ggplot(transform(d.incshm, female = c("Male headed", "Female headed")[as.n
 pp
 
 
-
+# -- INCOME SHARES VS. PC EXPENDITURES
 pp <- ggplot(d.incshm, aes(x = Expenditures, y = value, colour = variable)) +
-  stat_smooth(method = "loess", alpha = 0.2, size = 1.5, span = 1) + 
+  stat_smooth(method = "loess", alpha = 0.0, size = 1.5, span = 1) + 
   scale_y_continuous(limits = c(-0, 1)) + scale_x_log10() +
   geom_jitter(alpha=0.15) + facet_wrap(~Region, ncol = 3) +
   theme(legend.position = "top", legend.title=element_blank(), legend.key = element_blank()) +
   labs(x = "Per Capita Expenditures", y = "Income share \n")
 pp
 
+
+pp <- ggplot(filter(d.incshm, female!="NA"), aes(x = Expenditures, y = value, colour = variable)) +
+  stat_smooth(method = "loess", alpha = 0.0, size = 1.5, span = 1) + 
+  scale_y_continuous(limits = c(-0, 1)) + scale_x_log10() +
+  geom_jitter(alpha=0.15) + facet_wrap(~female, ncol = 3) +
+  theme(legend.position = "top", legend.title=element_blank(), legend.key = element_blank()) +
+  labs(x = "Per Capita Expenditures", y = "Income share \n")
+pp
 
 pp <- ggplot(d.incshm, aes(x = Expenditures, y = value, colour = variable)) +
   stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + 
@@ -182,7 +195,7 @@ pp <- ggplot(d.incshm, aes(x = Expenditures, y = value, colour = variable)) +
   theme(legend.position = "top", legend.title = element_blank(), legend.key = element_blank()) +
   labs(x = "Per Capita Expenditures", y = "Income share \n")
 pp
-remove(d.inc, d.incm, d.incsh, d.incshm)
+
 
 pp <- ggplot(d.incshm, aes(x = age, y = value, colour = variable)) +
   stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 0.75) + 
@@ -191,28 +204,43 @@ pp <- ggplot(d.incshm, aes(x = age, y = value, colour = variable)) +
   theme(legend.position = "top", legend.title = element_blank(), legend.key = element_blank()) +
   labs(x = "Age of head of household", y = "Income share \n")
 pp
+
+
 remove(d.inc, d.incm, d.incsh, d.incshm)
 
 
 
 
 # Finally, look at specialization typologies and have they evolve over time
-d.spec <- as.data.frame(select(dsub, fhh, fmhh, lhh, mhh, date, HHID, stratumP, pcexpend, yearInt, totincome1, agehead))
-names(d.spec) <- c("Farm", "Farm-Market", "Wages", "Migration" , "date", "id", "Region", "Expenditures", "Year", "Income", "age")
+d.spec <- as.data.frame(select(dsub, fhh, fmhh, lhh, mhh, date, HHID, stratumP, pcexpend2011, yearInt, totincome2011, agehead, femhead))
+names(d.spec) <- c("Farm", "Farm-Market", "Wages", "Migration" , "date", "id", "Region", "Expenditures", "Year", "Income", "age", "female")
 d.spec <- filter(d.spec, Year != "NA")
+d.spec$female <- factor(d.spec$female, levels = c(0, 1), 
+                         labels = c("Male Headed", "Female Headed"))
 
-
-d.specm <- melt(d.spec, id = c("id", "date", "Region", "Expenditures", "Year", "Income", "age"))
+d.specm <- melt(d.spec, id = c("id", "date", "Region", "Expenditures", "Year", "Income", "age", "female"))
 
 d.specm$Region <- factor(d.specm$Region, levels = c("West Rural", "East Rural", "North Rural", 
                                                       "Central Rural", "Other Urban", "Kampala"))
 
-p <- ggplot(d.specm, aes(x = age, y = value, colour = variable)) +
-  stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + facet_wrap(~Region, ncol = 3) +
+p <- ggplot(d.specm, aes(x = Year, y = value, colour = variable)) +
+  stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + facet_wrap(~Region, ncol = 6) +
   scale_y_continuous(limits = c(-0, 1))+
   geom_jitter(alpha = 0.1, position = position_jitter(height = 0.05)) +
   theme(legend.position = "top", legend.key=element_blank(), legend.title = element_blank()) +
   labs(x = "age", y = "Percent of households specializing in activity")
 p
+
+
+p <- ggplot(d.specm, aes(x = age, y = value, colour = variable)) +
+  stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + facet_wrap(~Region, ncol = 6) +
+  scale_y_continuous(limits = c(-0, 1))+
+  geom_jitter(alpha = 0.1, position = position_jitter(height = 0.05)) +
+  theme(legend.position = "top", legend.key=element_blank(), legend.title = element_blank()) +
+  labs(x = "age", y = "Percent of households specializing in activity")
+p
+
+
+
 
 

@@ -80,7 +80,7 @@ myplot <- function(x, y, z){
   g.spec
 }
 
-myplot("date", "pcexp", "stratumP") + geom_point(alpha = 0.10) + scale_y_log10()
+myplot("date", "pcexpend2011", "stratumP") + geom_point(alpha = 0.10) + scale_y_log10()
 
 
 # -- SHOCKS -- #
@@ -98,8 +98,33 @@ transp <- c(1)
 dpi.out <- c(300)
 
 # Order data for ease in intrepreting plots
-dsub$stratumP <- factor(dsub$stratumP, levels = c("Central Rural", "North Rural", "East Rural", 
-                                                  "West Rural", "Other Urban", "Kampala"))
+dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "East Rural", "West Rural", 
+                                                  "Central Rural", "Other Urban", "Kampala"))
+
+ggplot(dsub, aes(x = date, y = pcexpend2011, colour = stratumP))  + facet_wrap(~stratumP, ncol = 6)+
+  geom_point(alpha = 0.10) + scale_y_log10() + stat_smooth(method = "loess", size=1.25, alpha = 0)
+
+
+
+# Sort the data for plotting
+d.pcexp <- as.data.frame(select(dsub, pcexpend2011, HHID, date, stratumP, agehead, femhead))
+d.pcexp$stratumP <- factor(d.pcexp$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
+                                                          "Central Rural", "Other Urban", "Kampala"))
+
+names(d.pcexp) <- c("Expenditures", "id", "date", "Region", "age", "female")
+d.pcexpm <- melt(d.pcexp, id=c("id", "date", "Region", "age", "female"))
+
+p <- ggplot(d.pcexpm, aes(x = age, y = value, colour = Region)) +
+  facet_wrap(~Region, ncol = 6) +   stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + 
+  theme(legend.position = "top", legend.title=element_blank(), 
+        panel.border = element_blank(), legend.key = element_blank()) +
+  scale_y_log10() +
+  geom_jitter(alpha = 0.05)+
+  labs(x = "", y = "Logged per capital expenditures \n", # label y-axis and create title
+       title = "", size = 13) +
+  scale_color_brewer(palette="Set2")
+
+
 
 
 
@@ -236,104 +261,6 @@ gsave("FCS", 13, 7)
 
 
 
-
-
-
-
-
-
-
-
-
-
-# --- Plot per capita consumption expenditures over the three years as reported by RIGA data
-dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "West Rural", "East Rural", 
-                                                  "Central Rural", "Other Urban", "Kampala"))
-
-ggplot(dsub, aes(x = date, y = pcexpend, colour = stratumP)) + 
-  stat_smooth(method = "loess", size = 1, se = "TRUE") +
-  g.spec + geom_point(alpha=0.5) + facet_wrap(~ stratumP, ncol = 2)+ scale_y_log10()
-
-# Show that per capita expenditures are declining each year
-ggplot(dsub, aes(x = date, y = totincome1, colour = stratumP)) + stat_smooth(method = "loess", size = 1, se = "TRUE") +
-  g.spec  + facet_wrap(~ stratumP, ncol = 2)+ scale_y_log10()
-
-# Subset to only 3 regions - North, West, East
-target <- c("North Rural", "West Rural", "East Rural")
-dsub1 <- filter(dsub, stratumP %in% target)
-
-# - filter on urban
-dsub2 <- filter(dsub, urban == "Rural")
-
-ggplot(dsub2, aes(x = date, y = pcexpend, colour = stratumP)) + stat_smooth(method = "loess", size = 1, se = "TRUE") +
-         g.spec + geom_point(alpha=0.5) + facet_wrap(~ stratumP, ncol = 2) + scale_y_log10()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# --- Stunting indicators at individual level
-# --- Read in as a dplyr data frame tbl
-d.ind <- tbl_df(read.csv("UGA_201504_ind_all.csv"))
-
-# Look at stunting by months of age across regions
-# First cross-tabulate data to get percentages for each region
-library(gmodels)
-d.indf <- filter(d.ind, stunted!="NA", stratumP!="", yearInt!="NA") 
-
-CrossTable(d.indf$stunted, d.indf$stratumP)
-
-# Relevel factors for stratum to get order on graphics
-
-d.indf$stratumP <- factor(d.indf$stratumP, levels = c("West Rural", "East Rural", "North Rural", 
-                                                  "Central Rural", "Kampala", "Other Urban"))
-
-
-# --- First plot data overtime and ignore age
-ggplot(d.indf, aes(x = stunting)) + geom_density(aes(fill = stratumP, y = ..count..)) + 
-  facet_wrap(stratumP~year, ncol = 3) +
-  geom_vline(xintercept = c(-2.0), alpha = 0.25, linetype ="dotted", size = 1) + g.spec
-
-
-# Graph smoothed stunting rates with data jittered  
-ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = stratumP)) + 
-  stat.set +
-  facet_wrap(stratumP ~ year, ncol=3) + 
-  g.spec + geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
-  # customize y-axis
-  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "Child stunting was most prevalent in the West Rural region in 2009.", size = 13)
-
-# Graph smoothed wasting rates with data jittered  
-ggplot(d.indf, aes(x = ageMonths, y = underwgt, colour = stratumP)) + 
-  stat.set +
-  facet_wrap(stratumP ~ year, ncol=3) + 
-  g.spec + geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
-  # customize y-axis
-  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "Child stunting was most prevalent in the West Rural region in 2009.", size = 13)
-
-
-# Scatter the data to see how indicators correlate
-
-# --- First filter data to only get those w/ regional info
-target <- c("West Rural", "East Rural", "North Rural", "Central Rural", "Kampala", "Other Urban")
-ggplot(filter(d.indf, stratumP %in% target), aes(x = stunting, y = underweight)) + 
-         geom_point()  + stat_binhex() + stat_smooth(method="loess", span=1) + facet_wrap(~year)
-
-ggplot(filter(d.indf, stratumP %in% target), aes(x = stunting, y = wasting)) + 
-  geom_point()  + stat_binhex() + stat_smooth(method="loess", span=1) + facet_wrap(~year)
 
 # # Graph smoothed stunting rates with data jittered  
 # ggplot(d.indf[d.indf$year == 2010, ], aes(x = ageMonths, y = stunted, colour = stratumP)) + 

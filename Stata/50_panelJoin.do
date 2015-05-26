@@ -228,7 +228,7 @@ forvalues i=2009(1)2011 {
 * Create a cut of data for interpolation in ArcGIS - Caveat; households with children
 * may not be respresented adequately due to sample design *
 drop if stunted == .
-
+bob
 egen stunted_HH = max(stunted), by(HHID year)
 egen stunted_Tot = total(stunted), by(HHID year)
 

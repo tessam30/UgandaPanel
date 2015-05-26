@@ -318,6 +318,74 @@ esttab Central* East* North* West* dietAll* using "$pathreg/Regions_diet_all.txt
 xtreg FCS $hhchar $agechar $educhar $wealth $geo $month $lvstk if year==`year' & urban==0 & stratumP==`j', ll(0) vce(robust)
 
 
+* Particpation in RIGA over time
+* Run a final pooled probit model & OLS model (tried xtprobit and chi-squared test couldnt' reject; rho nearly 0 ~ 0.06)
+eststo pld_pag: probit p_ag $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+
+eststo pld_pag09: probit p_nonfarm $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+linktest
+
+eststo pld_pag10: probit p_nonfarm $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+linktest
+
+eststo pld_pag11: probit p_nonfarm $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+linktest
+
+esttab pld_pag*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
+
+
+* -- Non-farm activities --*
+eststo pld_p_nonfarm: probit p_nonfarm $hhchar $agechar $educhar $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo pld_p_nonfarm09: probit p_nonfarm $hhchar $agechar $educhar $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+eststo pld_p_nonfarm10: probit p_nonfarm $hhchar $agechar $educhar $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+eststo pld_p_nonfarm11: probit p_nonfarm $hhchar $agechar $educhar $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+esttab pld_p_nonfarm*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
+
+
+* -- Other activities --*
+eststo pld_p_trans: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo pld_p_trans09: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+eststo pld_p_trans10: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+eststo pld_p_trans11: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+esttab pld_p_trans*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
+
+
+* -- Specialization --*
+fhh, fmhh, lhh, mhh
+
+eststo pld_fhh: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo fhh09: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+eststo fhh10: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+eststo fhh11: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+esttab pld_fhh fhh*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
+coefplot pld_fhh || fhh09 || fhh10 || fhh11, xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+
+* -- Labour specialization (wages)
+eststo pld_lhh: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo lhh09: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+linktest
+eststo lhh10: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+linktest
+eststo lhh11: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+linktest
+esttab pld_lhh lhh*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
+coefplot pld_lhh || lhh09 || lhh10 || lhh11, xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
+
+* 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
