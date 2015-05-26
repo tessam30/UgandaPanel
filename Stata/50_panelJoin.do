@@ -134,6 +134,10 @@ winsor2 agwealth, replace cuts(1 99.5) by(stratumP)
 clonevar pcexpend = pcexp
 winsor2 pcexpend, replace cuts (1 99.5) by(stratumP)
 
+* Winsorize medical costs per capita
+histogram medCostspc
+winsor2 medCostspc, replace cuts (1 99) by(stratumP)
+
 * Flag households that survive all three years
 g byte pFull = riga_mg == 3
 
@@ -228,7 +232,7 @@ forvalues i=2009(1)2011 {
 * Create a cut of data for interpolation in ArcGIS - Caveat; households with children
 * may not be respresented adequately due to sample design *
 drop if stunted == .
-bob
+
 egen stunted_HH = max(stunted), by(HHID year)
 egen stunted_Tot = total(stunted), by(HHID year)
 

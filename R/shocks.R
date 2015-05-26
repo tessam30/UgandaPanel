@@ -38,6 +38,26 @@ dpi.out = 500
 # --- Set plot specifications for reuse throughout file
 g.spec <- theme(legend.position = "none", legend.title=element_blank(), 
                 panel.border = element_blank(), legend.key = element_blank(), 
+                legend.text = element_text(size = 10), #Customize legend
+                plot.title = element_text(hjust = 0, size = 10, face = "bold"), # Adjust plot title
+                panel.background = element_rect(fill = "white"), # Make background white 
+                panel.grid.major = element_blank(), panel.grid.minor = element_blank(), #remove grid    
+                axis.text.y = element_text(hjust = -0.5, size = 10, colour = dgrayL), #soften axis text
+                axis.text.x = element_text(hjust = .5, size = 10, colour = dgrayL),
+                axis.ticks.y = element_blank(), # remove y-axis ticks
+                axis.title.y = element_text(colour = dgrayL),
+                #axis.ticks.x=element_blank(), # remove x-axis ticks
+                #plot.margin = unit(c(1,1,1,1), "cm"),
+                plot.title = element_text(lineheight = 1 ), # 
+                panel.grid.major = element_blank(), # remove facet formatting
+                panel.grid.minor = element_blank(),
+                strip.background = element_blank(),
+                strip.text.x = element_text(size = 6, colour = dgrayL, face = "bold"), # format facet panel text
+                panel.border = element_rect(colour = "black"),
+                panel.margin = unit(2, "lines")) # Move plot title up
+
+g.spec1 <- theme(legend.position = "none", legend.title=element_blank(), 
+                panel.border = element_blank(), legend.key = element_blank(), 
                 legend.text = element_text(size = 14), #Customize legend
                 plot.title = element_text(hjust = 0, size = 17, face = "bold"), # Adjust plot title
                 panel.background = element_rect(fill = "white"), # Make background white 
@@ -55,7 +75,6 @@ g.spec <- theme(legend.position = "none", legend.title=element_blank(),
                 strip.text.x = element_text(size = 13, colour = dgrayL, face = "bold"), # format facet panel text
                 panel.border = element_rect(colour = "black"),
                 panel.margin = unit(2, "lines")) # Move plot title up
-
 
 # --- Generate a start date 
 # startDate <- as.Date("2009-01-01")
@@ -146,7 +165,7 @@ p <- ggplot(filter(dsub, totShock!="NA"), aes(x = date, y = totShock, colour = s
        title = "Total households shocks, on average, are declining throughout Uganda", size = 13) +
   geom_jitter(position = position_jitter(height=0.25), alpha = transp, size = 0.5)
 print(p)
-gsave("TotalShock", 13, 3)
+gsave("TotalShock", 5.8, 1.85, 3.5)
 
 
 # --- Create plot for hazard shocks w/ data jittered at top and bottom
@@ -156,12 +175,25 @@ dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "Central Rural"
 p <- ggplot(filter(dsub, hazardShk!="NA"), aes(x = date, y = hazardShk, colour = stratumP)) +  
   facet_wrap(~stratumP, ncol = 6) +
   stat.set1 +
-  g.spec + scale_y_continuous(lim=c(0,1)) + 
+  g.spec1 + scale_y_continuous(lim=c(0,1)) + 
   scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
   geom_hline(yintercept = c(0.5), linetype = "dotted", size = 1, alpha = transp) +
   geom_jitter(position = position_jitter(height = 0.05), alpha = transp, size = 0.5) 
 print(p)
 gsave("HazardShocks", 13, 3)
+
+p <- ggplot(filter(dsub, hazardShk!="NA"), aes(x = date, y = hazardShk, colour = stratumP)) +  
+  facet_wrap(~stratumP, ncol = 6) +
+  stat_smooth(method = "loess", span = 1, size = 1.15, se = TRUE, alpha =0.10) +
+  g.spec1 + scale_y_continuous(lim=c(0,1)) + 
+  scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
+  geom_hline(yintercept = c(0.5), linetype = "dotted", size = 1, alpha = 0.10) +
+  geom_jitter(position = position_jitter(height = 0.05), alpha = 0.10, size = 0.5) 
+print(p)
+
+
+
+
 
 # --- Same plot for health shocks, but first reorder facets for plotting in order
 dsub$stratumP <- factor(dsub$stratumP, levels = c("East Rural", "North Rural", "Central Rural", 
@@ -176,6 +208,30 @@ p <- ggplot(dsub, aes(x = date, y = healthShk, colour = stratumP)) +
   geom_jitter(position = position_jitter(height = 0.05), alpha = transp, size = 0.5) 
 print(p)
 gsave("HealthShocks", 13, 3)
+
+p <- ggplot(dsub, aes(x = date, y = healthShk, colour = stratumP)) + 
+  facet_wrap(~stratumP, ncol = 6) + 
+  stat_smooth(method = "loess", span = 1, se = TRUE, alpha = 0.10, line = 1.15) +
+  scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y")) +
+  geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = 0.10)+
+  geom_jitter(position = position_jitter(height = 0.05), alpha = 0.10, size = 0.5) 
+print(p)
+
+# Per capita medical expenses
+dsub$stratumP <- factor(dsub$stratumP, levels = c("Kampala", "West Rural", "Other Urban", 
+                                                  "Central Rural", "East Rural", "North Rural"))
+p <- ggplot(dsub, aes(x = date, y = medCostspc, colour = stratumP)) + 
+  facet_wrap(~stratumP, ncol = 6) + #scale_y_log10()+
+  stat_smooth(method = "loess", span = 1, se = TRUE, alpha = 0.10, line = 1.15) +
+  scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y"))  +
+  labs(y = "Average medical costs per capita (per household)")
+  #geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = 0.10)+
+  #geom_jitter(position = position_jitter(height = 0.05), alpha = 0.10, size = 0.5) 
+print(p)
+
+
+
+
 
 # --- Plot coping strategies employed (good v. bad)
 library(reshape)
@@ -230,7 +286,7 @@ ggplot(dsub, aes(x = pcexpend, y = p_nonag, colour = stratumP)) + stat_smooth(al
 dsub$stratumP <- factor(dsub$stratumP, levels = c("West Rural", "North Rural", "East Rural", 
                                                   "Central Rural", "Other Urban", "Kampala"))
 p <- ggplot(dsub, aes(x = date, y = dietDiv, colour = stratumP)) +
-  stat.set1 +
+  stat.set1 + g.spec +
   facet_wrap(~ stratumP, ncol = 6) +
   geom_jitter(alpha=transp, position = position_jitter(height=0.3), size = 0.5) +
   g.spec + scale_x_date(breaks = date_breaks("12 months"),
@@ -245,18 +301,23 @@ gsave("DietDiv", 13, 7)
 # - Food Consumption Score
 dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "East Rural", "West Rural", 
                                                   "Central Rural", "Other Urban", "Kampala"))
-
+theme_set(theme_gray(base_size = 12))
 p <- ggplot(dsub, aes(x = date, y = FCS, colour = stratumP)) + 
-  stat.set1 + facet_wrap(~ stratumP, ncol = 6) + geom_point(alpha=transp, size = 0.5)+ 
-  g.spec + scale_x_date(breaks = date_breaks("12 months"),
-                        labels = date_format("%Y")) +
-  scale_y_continuous(breaks = seq(0, 110, 10 ), limits = c(0,110)) + # customize y-axis
+  stat_smooth(method = "loess") + g.spec +
+  facet_wrap(~ stratumP, ncol = 6) + g.spec +
+  scale_x_date(breaks = date_breaks("12 months"), labels = date_format("%Y")) +
+  geom_hline(yintercept = 35, size = 1, alpha = transp) +
+  geom_hline(yintercept = 53, size = 1, alpha = transp) +
+  #scale_y_continuous(breaks = seq(30, 60, 10 )) + # customize y-axis
   labs(x = "", y = "Average food consumption score\n", # label y-axis and create title
-       title = "Households in North rural zones lag behind in food consumption scores.", size = 13)
+       title = "", size = 8) 
 print(p)
-gsave("FCS", 13, 7)
+gsave("FCS", 5.8, 1.85)
+
+p <- ggplot(dsub, aes(x = date, y = FCS, colour = stratumP))+ facet_wrap(~ stratumP, ncol = 6)+stat.set1
 
 
+# Per capita household medical expenditures
 
 
 
@@ -285,146 +346,10 @@ gsave("FCS", 13, 7)
 
 
 
-# --- convert binaries of interest into factors for cdplot
-d$hzdShock <- as.factor(d$hazardShk)
-d$hlthShock <- as.factor(d$healthShk)
-d$crimeShock  <- as.factor(d$crimeShk)
-
-# --- subset the data
-dsub.nine <- subset(d, year== 2009)
-dsub.ten <- subset(d, year== 2010)
-dsub.elev <- subset(d, year== 2011)
-
-# --- Plot conditional density of shocks versus various dep vars
-cdplot(hzdShock ~ infraindex, data = dsub.nine)
-
-
-transp <- c(1)
-# --- Plotting shocks
-
-
-# The analysis of remaining shocks shows little variation over time /space
 
 
 
 
-
-# --- Look at dependency ratios overtime and resort to order
-dsub$stratumP <- factor(dsub$stratumP, levels = c("North Rural", "East Rural", "West Rural", 
-                                                  "Central Rural", "Other Urban", "Kampala"))
-
-ggplot(dsub, aes(x = year, y = orphan, colour = stratumP)) + facet_wrap(~stratumP, ncol = 6) + 
-  geom_smooth(method = "loess", size = 1, se = "FALSE") + 
-  g.spec
-
-
-# --- What about farm specializations overtime across regions
-myplot(dsub$mhh)
-
-
-
-
-
-
-
-
-
-# --- Group and summarise shock data
-shkH <- group_by(d, year, stratumP) %>%
-    summarise(shock = mean(hazardShk, na.rm = TRUE), # create mean values for shock
-            shock.n = n(), 
-            shock.se = sqrt(shock*(1-shock)/shock.n)) %>% # calculate standard error
-    filter(stratumP !="") # Filter missing values of stratum variable
-
-# --- Round off and convert to percentage
-shkH$rdshock <- percent(round(shkH$shock, digits = 2)) 
-
-# Re-order factors for plotting in order
-shkH$stratumP <- factor(shkH$stratumP, levels = c("North Rural", "Central Rural", "West Rural", 
-                                                  "East Rural", "Other Urban", "Kampala"))
-# --- Create ggplot of data
-p <-ggplot(shkH, aes(x = year, y = shock, colour = stratumP)) + 
-      geom_point(shape = 16, fill = "white", size = 4) +stat_smooth(method = "loess", size = 1) +
-      facet_wrap(~ stratumP, ncol = 6) + 
-      #geom_errorbar(aes(ymin = shock - shock.se, ymax = shock + shock.se, width = 0.1)) +
-      geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = 0.10) +
-        #geom_text(aes(x = year, y = shock, ymax = shock, label = rdshock, vjust = 0, hjust = .2)) +
-      g.spec + 
-      scale_x_continuous(breaks = seq(2009, 2011, 1)) + #customize x-axis
-      scale_y_continuous(limits = c(0,1)) + # customize y-axis
-      labs(x = "", y = "Percent of households reporting shock\n", # label y-axis and create title
-         title = "Natural hazards (droughts, floods & fires) are the most common  household shocks across Uganda", size = 13) +
-      scale_colour_brewer(palette="Set2") # apply faceting and color palette
-print(p)
-
-
-
-
-
-
-
-
-
-
-# Run same analysis for health shocks
-shkHlth <- group_by(d, year, stratumP) %>%
-      summarise(shock = mean(healthShk, na.rm = TRUE),
-                shock.n = n(),
-                shock.se = sqrt(shock*(1-shock)/shock.n)) %>%
-      filter(stratumP !="")
-# Re-order factors for plotting in order
-shkHlth %>% arrange(desc(shock, year))
-shkHlth$stratumP <- factor(shkHlth$stratumP, levels = c("East Rural", "Central Rural", "North Rural", 
-                                                  "West Rural", "Other Urban", "Kampala"))
-
-
-# --- Create ggplot of data
-p <-ggplot(shkHlth, aes(x = year, y = shock, colour = stratumP)) + 
-  geom_point(shape = 16, fill = "white", size = 4) +stat_smooth(method = "loess", size = 1) +
-  facet_wrap(~ stratumP, ncol = 6) + 
-  geom_errorbar(aes(ymin = shock - shock.se, ymax = shock + shock.se, width = 0.1)) +
-  geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = 0.10) +
-  
-  #geom_text(aes(x = year, y = shock, ymax = shock, label = rdshock, vjust = 0, hjust = .2)) +
-  g.spec + 
-  scale_x_continuous(breaks = seq(2009, 2011, 1)) + #customize x-axis
-  scale_y_continuous(limits = c(0,1)) + # customize y-axis
-  labs(x = "", y = "Percent of households reporting shock\n", # label y-axis and create title
-       title = "Health shocks are second most common type of shock.", size = 13) +
-  scale_colour_brewer(palette="Set2") # apply faceting and color palette
-print(p
-
-
-
-
-
-
-# Run same analysis for crime shocks
-shkCr <- group_by(d, year, stratumP) %>%
-  summarise(shock = mean(crimeShk, na.rm = TRUE),
-            shock.n = n(),
-            shock.se = sqrt(shock*(1-shock)/shock.n)) %>%
-  filter(stratumP !="")
-# Re-order factors for plotting in order
-shkCr %>% arrange(desc(shock, year))
-shkCr$stratumP <- factor(shkCr$stratumP, levels = c("Central Rural", "East Rural", "Other Urban", 
-                                                        "North Rural", "Kampala", "West Rural"))
-
-# --- Create ggplot of data
-p <-ggplot(shkHlth, aes(x = year, y = shock, colour = stratumP)) + 
-  geom_point(shape = 16, fill = "white", size = 4) +stat_smooth(method = "loess", size = 1) +
-  facet_wrap(~ stratumP, ncol = 6) + 
-  geom_errorbar(aes(ymin = shock - shock.se, ymax = shock + shock.se, width = 0.1)) +
-  geom_hline(yintercept = 0.5, linetype = "dotted", size = 1, alpha = 0.10) +
-  
-  #geom_text(aes(x = year, y = shock, ymax = shock, label = rdshock, vjust = 0, hjust = .2)) +
-  g.spec + 
-  scale_x_continuous(breaks = seq(2009, 2011, 1)) + #customize x-axis
-  scale_y_continuous(limits = c(0,1)) + # customize y-axis
-  labs(x = "", y = "Percent of households reporting shock\n", # label y-axis and create title
-       title = "Crime shocks have steadily declined since 2009.", size = 13) +
-  scale_colour_brewer(palette="Set2") # apply faceting and color palette
-print(p)
 
 
 # --- Look at mosquito net use in the household (does anyone use nets?)

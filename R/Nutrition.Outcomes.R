@@ -91,6 +91,27 @@ ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = stratumP)) +
   labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
        title = "", size = 13)
 
+# Graph smoothed stunting rates with data jittered  
+ggplot(d.indf, aes(x = ageMonths, y = underwgt, colour = factor(yearInt))) + 
+  stat_smooth(method = "loess", se = FALSE, span = 1.0, size = 1.15, alpah = 0.05 )+
+  #facet_wrap(~stratumP, ncol = 3) +
+  geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
+  theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank())+
+  # customize y-axis
+  labs(x = "Age of child (in months)", y = "Percent underweight \n", # label y-axis and create title
+       title = "", size = 13)
+
+# Graph smoothed stunting rates with data jittered  
+ggplot(d.indf, aes(x = ageMonths, y = underwgt, colour = stratumP)) + 
+  stat_smooth(method = "loess", se = TRUE, span = 1.0, size = 1.15, alpah = 0.05 )+
+  facet_wrap(~stratumP, ncol = 3) +
+  geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
+  theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank())+
+  # customize y-axis
+  labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
+       title = "", size = 13)
+
+
 
 
 
