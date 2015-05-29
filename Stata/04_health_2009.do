@@ -107,6 +107,7 @@ g cheight = h6q28a
 clonevar ageMonths = h6q04
 la var ageMonths "Age of child (in months)
 replace cheight = h6q28b if cheight == .
+clonevar gender = h2q3
 
 * Calculate z-scores using zscore06 package
 * 13 reported cases of oedema

@@ -31,6 +31,29 @@ lblueL <- c("#7090B7")
 dblueL <- c("#003359")
 lgrayL <- c("#CECFCB")
 
+# --- Preset ggplot backgrounds
+g.spec1 <- theme(legend.position = "none", legend.title=element_blank(), 
+                 panel.border = element_blank(), legend.key = element_blank(), 
+                 legend.text = element_text(size = 12), #Customize legend
+                 plot.title = element_text(hjust = 0, size = 17, face = "bold"), # Adjust plot title
+                 panel.background = element_rect(fill = "white"), # Make background white 
+                 panel.grid.major = element_blank(), panel.grid.minor = element_blank(), #remove grid    
+                 axis.text.y = element_text(hjust = -0.5, size = 10, colour = dgrayL), #soften axis text
+                 axis.text.x = element_text(hjust = .5, size = 10, colour = dgrayL),
+                 axis.ticks.y = element_blank(), # remove y-axis ticks
+                 axis.title.y = element_text(colour = dgrayL),
+                 #axis.ticks.x=element_blank(), # remove x-axis ticks
+                 #plot.margin = unit(c(1,1,1,1), "cm"),
+                 panel.margin = unit(0.75, "lines"),
+                 plot.title = element_text(lineheight = 1 ), # 
+                 panel.grid.major = element_blank(), # remove facet formatting
+                 panel.grid.minor = element_blank(),
+                 strip.background = element_blank(),
+                 strip.text.x = element_text(size = 10, colour = dgrayL, face = "bold"), # format facet panel text
+                 panel.border = element_rect(colour = "black"),
+                 panel.margin = unit(2, "lines")) # Move plot title up
+
+
 # --- Setting predefined color schema; and dpi settings
 clr = "YlOrRd"
 dpi.out = 500
@@ -242,20 +265,45 @@ d.specm <- melt(d.spec, id = c("id", "date", "Region", "Expenditures", "Year", "
 d.specm$Region <- factor(d.specm$Region, levels = c("West Rural", "East Rural", "North Rural", 
                                                       "Central Rural", "Other Urban", "Kampala"))
 
-p <- ggplot(filter(d.specm, variable == "Diversified"), aes(x = Year, y = value, colour = variable)) +
-  stat_smooth(method = "loess", alpha = 0.3, size = 1.5, span = 1, se = TRUE)+ 
+# --- Special instructions: wanted to bring each plot to the top, so first use the factor
+# command to reorder, then apply manual scale colors (Set 2) to make all gray except var of interest.
+
+d.specm$variable <- factor(d.specm$variable, levels = c("Farm-Market", "Migration", "Farm",
+                                                        "Wages", "Diversified"))
+
+p <- ggplot(d.specm, aes(x = Year, y = value, colour = variable)) +
+  stat_smooth(method = "loess", alpha = 0.0, size = 1.5, span = 1, se = TRUE)+ 
   facet_wrap(~Region, ncol = 6) +
   scale_y_continuous(limits = c(-0, 1))+
-  geom_jitter(alpha = 0.1, position = position_jitter(height = 0.05)) +
-  theme(legend.position = "none", legend.key=element_blank(), legend.title = element_blank()) +
+  geom_jitter(alpha = 0.0, position = position_jitter(height = 0.05)) +
+  theme(legend.position = "top", legend.key=element_blank(), legend.title = element_blank(),
+        panel.background = element_rect(fill = "white"), # Make background white 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank(), # remove facet formatting
+        panel.grid.minor = element_blank(),
+        strip.background = element_blank()) +
   labs(x = "", y = "Percent of households specializing in activity") +
-  scale_color_manual(values=brewer.pal(8, "Set2")[5])
+  scale_color_manual(values=c("#A6D854", "#E78AC3", "#66C2A5", "#FC8D62", "#8DA0CB"))
 p
 # -- List color brewer colors to be used
 brewer.pal(8, "Set2")
+brewer.pal(8, "Accent")
 
-
-scale_colour_grey()
+d.specm09 <- filter(d.specm, Year == 2010)
+p <- ggplot(d.specm, aes(x = Expenditures, y = value, colour = variable)) +
+  stat_smooth(method = "loess", alpha = 0.0, size = 1.5, span = 1, se = TRUE)+ 
+  facet_wrap(~Region, ncol = 3) +
+  scale_y_continuous(limits = c(-0, 1))+scale_x_log10()+
+  geom_jitter(alpha = 0.10, position = position_jitter(height = 0.05)) +
+  theme(legend.position = "top", legend.key=element_blank(), legend.title = element_blank(),
+        panel.background = element_rect(fill = "white"), # Make background white 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank(), # remove facet formatting
+        panel.grid.minor = element_blank(),
+        strip.background = element_blank()) +
+  labs(x = "", y = "Percent of households specializing in activity") +
+  scale_color_manual(values=c("#A6D854", "#E78AC3", "#66C2A5", "#FC8D62", "#8DA0CB"))
+p
 
 
 p <- ggplot(d.specm, aes(x = age, y = value, colour = variable)) +

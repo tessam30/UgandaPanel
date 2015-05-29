@@ -39,6 +39,10 @@ preserve
 keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk /*
 */ anyshock totShock goodcope badcope $hhchar $agechar $educhar $wealth $geo /*
 */ pFull p_ag  p_nonfarm p_trans urban pcexpend2011 illness TLU_total
+logit hazardShk femhead  agehead  ageheadsq  marriedHohp  gendMix  mixedEth  /*
+*/ hhsize  under15  youth15to24  depRatio  mlabor  flabor  literateHoh  /*
+*/ literateSpouse  educHoh  landless  agwealth  wealthindex_rur  infraindex  hhmignet
+keep if e(sample)
 export delimited "$pathexport/UGA_201505_GWRcut.csv", replace
 restore
 
@@ -69,7 +73,7 @@ forvalues i=1/`n'{
 	local a: word `i' of `loc'
 	eststo `a', title("`a' 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month if year==2009 & urban==0 & stratumP==`j' & pFull, robust
 	fitstat
-	local j = `j'+1
+	local j = `j'1
 	}
 *end
 *
@@ -101,7 +105,7 @@ forvalues i=1/`n'{
 	local a: word `i' of `loc'
 	eststo `a', title("`a' 2010"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month if year==2010 & urban==0 & stratumP==`j', robust
 	fitstat
-	local j = `j'+1
+	local j = `j'1
 	}
 *end
 
@@ -133,7 +137,7 @@ forvalues i=1/`n'{
 	local a: word `i' of `loc'
 	eststo `a', title("`a' 2011"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month if year==2011 & urban==0 & stratumP==`j', robust
 	fitstat
-	local j = `j'+1
+	local j = `j'1
 	}
 *end
 
@@ -175,7 +179,7 @@ forvalues i=1/`n'{
 	esttab `a'* using "$pathreg/`a'_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace 	
 	
 	* Iterate StratumP to align with name
-	local j = `j'+1
+	local j = `j'1
 }
 *end
 
@@ -229,7 +233,7 @@ forvalues i=1/`n'{
 	esttab hlt`a'* using "$pathreg/hlt`a'_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace 	
 	
 	* Iterate StratumP to align with name
-	local j = `j'+1
+	local j = `j'1
 }
 *end
 
@@ -305,7 +309,7 @@ forvalues i=1/`n'{
 	esttab `a'* using "$pathreg/`a'_all.txt", se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace 	
 	
 	* Iterate StratumP to align with name
-	local j = `j'+1
+	local j = `j'1
 }
 *end
 
@@ -321,16 +325,12 @@ xtreg FCS $hhchar $agechar $educhar $wealth $geo $month $lvstk if year==`year' &
 * Particpation in RIGA over time
 * Run a final pooled probit model & OLS model (tried xtprobit and chi-squared test couldnt' reject; rho nearly 0 ~ 0.06)
 eststo pld_pag: probit p_ag $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
-
 eststo pld_pag09: probit p_nonfarm $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
 linktest
-
 eststo pld_pag10: probit p_nonfarm $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
 linktest
-
 eststo pld_pag11: probit p_nonfarm $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
 linktest
-
 esttab pld_pag*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
 
 
@@ -343,35 +343,44 @@ esttab pld_p_nonfarm*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replac
 
 
 * -- Other activities --*
-eststo pld_p_trans: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
-eststo pld_p_trans09: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
-eststo pld_p_trans10: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
-eststo pld_p_trans11: probit p_trans $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+eststo pld_p_trans: probit p_trans $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo pld_p_trans09: probit p_trans $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+eststo pld_p_trans10: probit p_trans $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+eststo pld_p_trans11: probit p_trans $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
 esttab pld_p_trans*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
 
 
 * -- Specialization --*
 fhh, fmhh, lhh, mhh
 
-eststo pld_fhh: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
-eststo fhh09: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
-eststo fhh10: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
-eststo fhh11: probit fhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+eststo pld_fhh: probit fhh $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo fhh09: probit fhh $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+eststo fhh10: probit fhh $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+eststo fhh11: probit fhh $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
 esttab pld_fhh fhh*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
 coefplot pld_fhh || fhh09 || fhh10 || fhh11, xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 
 * -- Labour specialization (wages)
-eststo pld_lhh: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
-eststo lhh09: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+eststo pld_lhh: probit lhh $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo lhh09: probit lhh $hhchar $agechar $educhar  $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
 linktest
-eststo lhh10: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+eststo lhh10: probit lhh $hhchar $agechar $educhar $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
 linktest
-eststo lhh11: probit lhh $hhchar $agechar $educhar $wealth $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+eststo lhh11: probit lhh $hhchar $agechar $educhar $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
 linktest
 esttab pld_lhh lhh*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
 coefplot pld_lhh || lhh09 || lhh10 || lhh11, xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 
-* 
+* -- Diversified specialization (wages)
+eststo pld_lhh: probit divhh $hhchar $agechar $educhar  hhmignet $geo $month $ageco region3 region5 region6 i.year if urban==0, cluster(hh)
+eststo lhh09: probit divhh $hhchar $agechar $educhar hhmignet $geo $month $ageco region3 region5 region6 if urban==0 & year == 2009, robust
+linktest
+eststo lhh10: probit divhh $hhchar $agechar $educhar hhmignet $geo $month $ageco region3 region5 region6 if urban==0 & year == 2010, robust
+linktest
+eststo lhh11: probit divhh $hhchar $agechar $educhar hhmignet $geo $month $ageco region3 region5 region6 if urban==0 & year == 2011, robust
+linktest
+esttab pld_lhh lhh*, se star(* 0.10 ** 0.05 *** 0.001) eform(0 1) label replace mtitles("Pooled Probit" "2009" "2010" "2011")
+coefplot pld_lhh || lhh09 || lhh10 || lhh11, xline(0, lwidth(thin) lcolor(gray)) mlabs(tiny) ylabel(, labsize(tiny)) cismooth(i(1 70))
 
 
 
