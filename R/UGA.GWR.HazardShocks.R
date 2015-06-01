@@ -7,7 +7,7 @@ library(coefplot)
 wd <- c("U:/UgandaPanel/Export/")
 wdw <- c("C:/Users/Tim/Documents/UgandaPanel/Export")
 wdh <- c("C:/Users/t/Documents/UgandaPanel/Export")
-setwd(wdw)
+setwd(wdh)
 
 
 data  <- read.csv("UGA_201505_GWRcut.csv", header = TRUE, sep = ",")
@@ -35,7 +35,6 @@ gw.ss.bx  <- gwss(d2009.spdf, vars = c("hazardShk", "femhead", "hhsize"),
 gw.ss.bs  <- gwss(d2009.spdf, vars = c("hazardShk", "femhead", "hhsize", "literateSpouse"),  
                   kernel = "bisquare", adaptive = TRUE, bw = 275, quantile = TRUE)
 
-
 # Create a map of results
 map.na = list("SpatialPointsDataFrame", scale = 100, col = 1)
 map.scale.1 = list("SpatialPointsDataFrame", layout.scale.bar())
@@ -50,24 +49,25 @@ spplot(gw.ss.bx$SDF, "hazardShk_IQR", col.regions = mypal1, cuts = 7,
 
 # Fit different models and compare results
 
-
-
-
-
-
-
 hazardLM <- lm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + mixedEth + hhsize + under15 + youth15to24 + depRatio + mlabor + flabor + literateHoh + literateSpouse + educHoh + landless + agwealth + wealthindex_rur + infraindex + hhmignet, data = d2009)
 summary(hazardLM)
 coefplot(hazardLM)
 
 # Global model estimated using logistic binomial 
-hazardGLM <- glm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + mixedEth + hhsize + under15 + youth15to24 + depRatio + mlabor + flabor + literateHoh + literateSpouse + educHoh + landless + agwealth + wealthindex_rur + infraindex + hhmignet, data = d2009, family = binomial(link = "logit"))
+hazardGLM <- glm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + 
+                   mixedEth + hhsize + under15 + youth15to24 + depRatio + mlabor + 
+                   flabor + literateHoh + literateSpouse + educHoh + landless + 
+                   agwealth + wealthindex_rur + infraindex + hhmignet, data = d2009, 
+                 family = binomial(link = "logit"))
 summary(hazardGLM)
-coefplot(hazardLM)
+coefplot(hazardGLM)
 
 # Fit sequential models to find best set of variables to test
 depvar <- "hazardShk"
-indepvars <- c("femhead", "agehead", "ageheadsq", "marriedHohp", "gendMix", "mixedEth", "hhsize", "under15", "youth15to24", "depRatio", "mlabor", "flabor", "literateHoh", "literateSpouse", "educHoh", "landless", "agwealth", "wealthindex_rur", "infraindex", "hhmignet")
+indepvars <- c("femhead", "agehead", "ageheadsq", "marriedHohp", "gendMix", "mixedEth", 
+               "hhsize", "under15", "youth15to24", "depRatio", "mlabor", "flabor", "literateHoh", 
+               "literateSpouse", "educHoh", "landless", "agwealth", "wealthindex_rur", 
+               "infraindex", "hhmignet")
 
 # Determine optimal AIC and variable combination using model selection function
 mod.sel <- model.selection.gwr(depvar, indepvars, data = d2009.spdf, kernel = "bisquare",
@@ -91,12 +91,34 @@ bw.gwr.1 <- bw.gwr(hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEt
 gwr.res <- gwr.robust( hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+femhead+youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+marriedHohp+under15+wealthindex_rur+agwealth, data = d2009.spdf, bw = bw.gwr.1, kernel = "bisquare", 
                        adaptive = TRUE, F123.test = TRUE)
 
-print(gwr.res)
+# Run binomial model
+gwr.res.binom <- gwr.generalised( hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+
+                              femhead+youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+
+                              marriedHohp+under15+wealthindex_rur+agwealth, 
+                            data = d2009.spdf, bw = bw.gwr.1, family = "binomial", kernel = "bisquare", 
+                       adaptive = TRUE, dMat = DM, cv = TRUE)
+
+print(gwr.res.binom)
+print(gwr.res.binom$GW.arguments)
 
 X11(width = 10, height = 12)
-spplot(gwr.res$SDF, "femhead", key.space = "right", 
+spplot(gwr.res.binom$SDF, "marriedHohp", key.space = "right", 
         main = "Robust GWR estimates for Female Headed Households")
 
+# Try interpolating the results
+res.binom.df <- as.data.frame(gwr.res.binom$SDF)
+write.csv( res.binom.df, "gwr.binom.csv")
+
+library("raster")
+library("akima")
+
+steps <- 100
+isu <- with(res.binom.df, interp(x, y, femhead, 
+                                xo=seq(min(x), max(x), length = steps),
+                                yo=seq(min(y), max(y), length = steps)
+))
+
+r <- raster(isu)
 
 
 
@@ -104,13 +126,14 @@ spplot(gwr.res$SDF, "femhead", key.space = "right",
 
 
 
+
+# Check for collinearity
+gwr.collin.diagno(hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+femhead+
+                    youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+marriedHohp+
+                    under15+wealthindex_rur+agwealth, data = d2009.spdf, bw = bw.gwr.1, kernel = "bisquare", 
+                  adaptive = TRUE, DM)
 
 hazardGWLR <- gwr.generalised(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + mixedEth + hhsize + under15 + youth15to24 + depRatio + mlabor + flabor + literateHoh + literateSpouse + educHoh + landless + agwealth + wealthindex_rur + infraindex + hhmignet , data = d2009.spdf , family = "binomial", kernel = "boxcar", bw = 275, longlat = TRUE, dMat = DM)
-
-
-
-
-
 
 hazardGWLR <- gwr.generalised(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + mixedEth + hhsize + under15 + youth15to24 + depRatio + mlabor + flabor + literateHoh + literateSpouse + educHoh + landless + agwealth + wealthindex_rur + infraindex + hhmignet, data = d2009.spdf, family = "binomial", kernel = "boxcar", bw = 200, longlat = TRUE, dMat = DM)
 
