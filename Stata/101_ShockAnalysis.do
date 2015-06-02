@@ -36,11 +36,11 @@ tab stratumP, gen(region)
 
 * Export a cut of data to WVU peoples for GWR
 preserve
-keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk /*
+keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk stratumP /*
 */ anyshock totShock goodcope badcope $hhchar $agechar $educhar $wealth $geo /*
 */ pFull p_ag  p_nonfarm p_trans urban pcexpend2011 illness TLU_total
 logit hazardShk femhead  agehead  ageheadsq  marriedHohp  gendMix  mixedEth  /*
-*/ hhsize  under15  youth15to24  depRatio  mlabor  flabor  literateHoh  /*
+*/ hhsize  under15  youth15to24  depRatio  mlabor  flabor  literateHoh  stratumP/*
 */ literateSpouse  educHoh  landless  agwealth  wealthindex_rur  infraindex  hhmignet
 keep if e(sample)
 export delimited "$pathexport/UGA_201505_GWRcut.csv", replace

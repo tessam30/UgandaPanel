@@ -212,8 +212,6 @@ local i = 2009
 	 *gen below3_`x'`i' = (`x' < -3)
 	 more
 	}
-
-
 *tabstat $zscores below* , stat(mean sd) col(stat) by(year)
 
 * Make scatter plots of the indicators to see how correlated they are
