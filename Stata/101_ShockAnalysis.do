@@ -36,12 +36,12 @@ tab stratumP, gen(region)
 
 * Export a cut of data to WVU peoples for GWR
 preserve
-keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk stratumP /*
+keep latitude longitude HHID hh year yearInt FCS dietDiv hazardShk healthShk stratumP monthInt /*
 */ anyshock totShock goodcope badcope $hhchar $agechar $educhar $wealth $geo /*
 */ pFull p_ag  p_nonfarm p_trans urban pcexpend2011 illness TLU_total
 logit hazardShk femhead  agehead  ageheadsq  marriedHohp  gendMix  mixedEth  /*
 */ hhsize  under15  youth15to24  depRatio  mlabor  flabor  literateHoh  stratumP/*
-*/ literateSpouse  educHoh  landless  agwealth  wealthindex_rur  infraindex  hhmignet
+*/ literateSpouse  educHoh  landless  agwealth  wealthindex_rur  infraindex  hhmignet monthInt
 keep if e(sample)
 export delimited "$pathexport/UGA_201505_GWRcut.csv", replace
 restore
@@ -62,7 +62,7 @@ foreach x of varlist anyshock hazardShk healthShk goodcope badcope {
 est clear
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural09, title("Rural 2009"): logistic hazardShk $hhchar $agechar $educhar $wealth $geo $month /*
+eststo Rural09, title("Rural 2009"): logistic goodcope $hhchar $agechar $educhar $wealth $geo $month /*
 */ $ageco region3 region5 region6 if year==2009 & urban==0, robust
 
 set more off

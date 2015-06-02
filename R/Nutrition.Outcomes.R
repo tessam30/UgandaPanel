@@ -112,6 +112,23 @@ ggplot(d.indf, aes(x = ageMonths, y = underwgt, colour = stratumP)) +
   labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
        title = "", size = 13)
 
+# graph percent in each category by region, over time
+d.ind.stunt <- tbl_df(read.csv("UGA_201505_ind_stunt.csv"))
+d.ind.stunt <- filter(d.ind.stunt, stratumP != "", stuntStatus != "")
+
+
+
+ggplot(d.ind.stunt, aes(x = year, y = pctstuntStat, colour = stuntStatus)) +
+  stat_smooth(method = "loess", se = FALSE, span = 1.0, size = 1.15, alpah = 0.05 )+
+  facet_wrap(~stratumP, ncol = 3) +
+  geom_point(alpha=0.15) + #geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
+  theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank())+
+  # customize y-axis
+  labs(x = "", y = "Percent of children with stunting classification \n", # label y-axis and create title
+       title = "", size = 13) +
+  scale_x_continuous(breaks = c(2009, 2010, 2011))
+
+
 
 
 

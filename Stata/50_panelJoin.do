@@ -198,12 +198,27 @@ clear
 merge m:1 HHID year using "$pathout/RigaPanel_201504_all.dta", gen(health_merge)
 drop if health_merge==2
 
+* Create classifications for stunting (mild, moderate, severe)
+g stuntStatus = 0 if stunting !=.
+replace stuntStatus = 1 if stunting <= -1 & stunting > -2
+replace stuntStatus = 2 if stunting <= -2 & stunting >= -3 
+replace stuntStatus = 3 if stunting < -3 
+la def st 0 "no stunting" 1 "mild" 2 "moderate" 3 "severe"
+la val stuntStatus st
+
+* Create percentages for each category to plot data by stratumP/year
+preserve
+collapse (count) stunting, by(stratumP year stuntStatus)
+egen stutTot = total(stunting), by(stratumP year)
+g pctstuntStat = stunting / stutTot
+export  delimited using "$pathexport\UGA_201505_ind_stunt.csv", replace
+restore
+
 export delimited using "$pathexport\UGA_201504_ind_all.csv", replace
 
 * Make graphs of malnutrition indicators
 global zscores "stunting wasting underweight"
 local i = 2009
-
 	foreach x of global zscores {
 	 graph twoway histogram `x'|| function y=normalden(x,0,1), by(year) /*
 		*/ range(`x') title("`x'") xtitle("z-score") ytitle("Density") /*
@@ -226,6 +241,8 @@ forvalues i=2009(1)2011 {
 	more
 }
 *end
+
+
 
 * Create a cut of data for interpolation in ArcGIS - Caveat; households with children
 * may not be respresented adequately due to sample design *
