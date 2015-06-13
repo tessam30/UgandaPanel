@@ -55,13 +55,13 @@ spplot(gw.ss.bx$SDF, "hazardShk_IQR", col.regions = mypal1, cuts = 7,
 
 
 # Fit different models and compare results
-hazardLM <- lm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + mixedEth + hhsize + under15 + youth15to24 + depRatio + mlabor + flabor + literateHoh + literateSpouse + educHoh + landless + agwealth + wealthindex_rur + infraindex + hhmignet + stratumP, data = d2009)
+hazardLM <- lm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + mixedEth + hhsize  + youth15to24 + depRatio + mlabor + flabor + literateHoh + literateSpouse + educHoh + landless + agwealth + wealthindex_rur + infraindex + hhmignet + stratumP, data = d2009)
 summary(hazardLM)
 coefplot(hazardLM)
 
 # Global model estimated using logistic binomial 
 hazardGLM <- glm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + 
-                   mixedEth + hhsize + under15 + youth15to24 + depRatio + mlabor + 
+                   mixedEth + hhsize  + youth15to24 + depRatio + mlabor + 
                    flabor + literateHoh + literateSpouse + educHoh + landless + 
                    agwealth + wealthindex_rur + infraindex + hhmignet + stratumP, data = d2009, 
                  family = binomial(link = "logit"))
@@ -77,7 +77,7 @@ names(res.glm) <- c("lat", "lon", "resid", "region")
 
 # plot residuals from GLM
 ggplot(res.glm, aes(y = lat, x = lon, size = resid)) +
-  geom_jitter(alpha = 0.25, position = position_jitter(height=0.1))
+  geom_jitter(alpha = 0.25)
 
 # --- Test for spatial autocorrelation in residuals
 # Generate inverse distance weights
@@ -94,7 +94,7 @@ Moran.I(res.glm$resid, res.dist.inv)
 # Fit sequential models to find best set of variables to test
 depvar <- "hazardShk"
 indepvars <- c("femhead", "agehead", "ageheadsq", "marriedHohp", "gendMix", "mixedEth", 
-               "hhsize", "under15", "youth15to24", "depRatio", "mlabor", "flabor", "literateHoh", 
+               "hhsize", "youth15to24", "depRatio", "mlabor", "flabor", "literateHoh", 
                "literateSpouse", "educHoh", "landless", "agwealth", "wealthindex_rur", 
                "infraindex", "hhmignet")
 
@@ -112,18 +112,18 @@ plot(sorted.mods[[2]][,2], col = "black", pch = 20, lty = 5,
      main = "GWR model selection procedure", ylab = "AICc", xlab = "Model No.", type = "b")
 
 # Run selection of optimal bandwidth
-bw.gwr.1 <- bw.gwr(hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+femhead+youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+marriedHohp+under15+wealthindex_rur+agwealth, data = d2009.spdf, approach = "AICc", kernel = "bisquare", adaptive = TRUE)
+bw.gwr.1 <- bw.gwr(hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+femhead+youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+marriedHohp+wealthindex_rur+agwealth, data = d2009.spdf, approach = "AICc", kernel = "bisquare", adaptive = TRUE)
 
 # 531 is the lucky number
 
 # Run GWR using robust 
-gwr.res <- gwr.robust( hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+femhead+youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+marriedHohp+under15+wealthindex_rur+agwealth, data = d2009.spdf, bw = bw.gwr.1, kernel = "bisquare", 
+gwr.res <- gwr.robust( hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+femhead+youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+marriedHohp+wealthindex_rur+agwealth, data = d2009.spdf, bw = bw.gwr.1, kernel = "bisquare", 
                        adaptive = TRUE, F123.test = TRUE)
 
 # Run binomial model
 gwr.res.binom <- gwr.generalised( hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+
                                     femhead+youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+
-                                    marriedHohp+under15+wealthindex_rur+agwealth, 
+                                    marriedHohp+wealthindex_rur+agwealth, 
                                   data = d2009.spdf, bw = bw.gwr.1, family = "binomial", kernel = "bisquare", 
                                   adaptive = TRUE, dMat = DM, cv = TRUE)
 
@@ -140,7 +140,7 @@ write.csv( res.binom.df, "gwr.binom.hazardShk.csv")
 # Check for collinearity
 gwr.collin.diagno(hazardShk~hhsize+infraindex+landless+hhmignet+gendMix+mixedEth+literateSpouse+femhead+
                     youth15to24+depRatio+educHoh+ageheadsq+agehead+mlabor+flabor+marriedHohp+
-                    under15+wealthindex_rur+agwealth, data = d2009.spdf, bw = bw.gwr.1, kernel = "bisquare", 
+                    wealthindex_rur+agwealth, data = d2009.spdf, bw = bw.gwr.1, kernel = "bisquare", 
                   adaptive = TRUE, DM)
 
 

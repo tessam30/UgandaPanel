@@ -33,6 +33,17 @@ la def hlth 0 "None" 1 "Government facility" 2 "Private facility" /*
 */ 3 "Pharmacy" 4 "Other"
 la val hlthCons hlth
 
+
+* Other typology for consultation
+g hlthCons2 = .
+replace hlthCons2 = 1 if inlist(h5q10, 1, 2, 3, 4)
+replace hlthCons2 = 2 if inlist(h5q10, 5, 6, 7, 8, 9)
+replace hlthCons2 = 3 if inlist(h5q10, 10, 11, 12, 13, 96)
+
+la def hlthw 1 "Public" 2 "Private" /*
+*/ 3 "Other"
+la val hlthCons2 hlthw
+
 clonevar distFacility = h5q11
 
 * Total costs for household due to illness
@@ -67,6 +78,10 @@ merge 1:1 HHID PID using "$pathout/hhchar_ind_2011.dta
 * Keep individuals matching in both data sets
 keep if _merge == 3
 
+* Merge with individual data containing demographic info
+merge 1:1 HHID PID using "$wave3/GSEC2.dta", gen(indiv)
+destring h2q1, replace
+
 * Save data and move to next module
 save "$pathout/illness_I_2011.dta", replace
 restore
@@ -75,7 +90,7 @@ restore
 tab hlthCons, gen(treatment)
 
 * Keep household-level vars and collapse down
-ds(PID h5* hlthCons medCostsI), not
+ds(PID h5* hlthCons hlthCons2 medCostsI), not
 keep `r(varlist)'
 
 qui include "$pathdo/copylabels.do"
@@ -208,7 +223,7 @@ erase "$pathout/healthtmp_2011.dta"
 sa "$pathout/health_2011.dta", replace
 
 * Call custom program to append data and create year variable
-qui include "$pathdo2/pappend"
+qui include "$pathdo/pappend"
 pappend health_2009 health_2010 health_2011 pa_health
 
 sa "$pathout/health_all.dta", replace

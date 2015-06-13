@@ -71,28 +71,35 @@ ggplot(d.indf, aes(x = stunting)) + geom_density(aes(fill = stratumP, y = ..coun
   facet_wrap(stratumP~year, ncol = 3) +
   geom_vline(xintercept = c(-2.0), alpha = 0.25, linetype ="dotted", size = 1) + g.spec
 
+
+# Create labels for year variable
+d.indf$year <- factor(d.indf$year, levels = c(2009, 2010, 2011), 
+                        labels = c("2009/10", "2010/11", "2011/12"))
+
+
 # Graph smoothed stunting rates with data jittered  
-ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = factor(yearInt))) + 
-  stat_smooth(method = "loess", se = FALSE, span = 1.0, size = 1.15, alpah = 0.05 )+
-  facet_wrap(~gender, ncol = 2) +
-  geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
-  theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank())+
+ggplot(d.indf, aes(x = ageMonths, y = wasted, colour = factor(gender))) + 
+  stat_smooth(method = "loess", se = TRUE, span = 1.0, size = 1.15, alpha = 0.1 )+
+  facet_wrap(~year, ncol = 3) +
+  geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.175) + 
+  theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank()) +
   # customize y-axis
+  geom_hline(yintercept = c(0.5), linetype = "dotted", size = 1, alpha = .25) +
   labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "", size = 13)
+       title = "", size = 13) + g.spec1
 
 
 # Graph smoothed stunting rates with data jittered  
-ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = stratumP)) + 
-  stat_smooth(method = "loess", se = TRUE, span = 1.0, size = 1.15, alpah = 0.05 )+
+ggplot(d.indf, aes(x = ageMonths, y = stunted, colour = year)) + 
+  stat_smooth(method = "loess", se = FALSE, span = 1.0, size = 1.15, alpah = 0.05 )+
   facet_wrap(~stratumP, ncol = 3) +
   geom_point(alpha=0.15) + geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
   theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank())+
   # customize y-axis
   labs(x = "Age of child (in months)", y = "Percent stunted\n", # label y-axis and create title
-       title = "", size = 13)
+       title = "", size = 13) + g.spec1
 
-# Graph smoothed stunting rates with data jittered  
+# Graph smoothed underweight rates with data jittered  
 ggplot(d.indf, aes(x = ageMonths, y = underwgt, colour = factor(yearInt))) + 
   stat_smooth(method = "loess", se = FALSE, span = 1.0, size = 1.15, alpah = 0.05 )+
   #facet_wrap(~stratumP, ncol = 3) +
@@ -116,10 +123,8 @@ ggplot(d.indf, aes(x = ageMonths, y = underwgt, colour = stratumP)) +
 d.ind.stunt <- tbl_df(read.csv("UGA_201505_ind_stunt.csv"))
 d.ind.stunt <- filter(d.ind.stunt, stratumP != "", stuntStatus != "")
 
-
-
-ggplot(d.ind.stunt, aes(x = year, y = pctstuntStat, colour = stuntStatus)) +
-  stat_smooth(method = "loess", se = FALSE, span = 1.0, size = 1.15, alpah = 0.05 )+
+ggplot(d.ind.stunt, aes(x = year, y = pctstuntStat, colour = stuntStatus)) + geom_line()
+  #stat_smooth(method = "loess", se = FALSE, span = 1.0, size = 1.15, alpah = 0.05 )+
   facet_wrap(~stratumP, ncol = 3) +
   geom_point(alpha=0.15) + #geom_jitter(position = position_jitter(height=0.05), alpha = 0.10) + 
   theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank())+

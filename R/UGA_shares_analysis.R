@@ -38,18 +38,18 @@ g.spec1 <- theme(legend.position = "none", legend.title=element_blank(),
                  plot.title = element_text(hjust = 0, size = 17, face = "bold"), # Adjust plot title
                  panel.background = element_rect(fill = "white"), # Make background white 
                  panel.grid.major = element_blank(), panel.grid.minor = element_blank(), #remove grid    
-                 axis.text.y = element_text(hjust = -0.5, size = 10, colour = dgrayL), #soften axis text
-                 axis.text.x = element_text(hjust = .5, size = 10, colour = dgrayL),
+                 axis.text.y = element_text(hjust = -0.5, size = 12, colour = dgrayL), #soften axis text
+                 axis.text.x = element_text(hjust = .5, size = 12, colour = dgrayL),
                  axis.ticks.y = element_blank(), # remove y-axis ticks
                  axis.title.y = element_text(colour = dgrayL),
                  #axis.ticks.x=element_blank(), # remove x-axis ticks
-                 #plot.margin = unit(c(1,1,1,1), "cm"),
-                 panel.margin = unit(0.75, "lines"),
+                 #plot.margin = unit(c(.1,.1,.1,.1,.1), "cm"),
+                 panel.margin = unit(0.05, "lines"), # Increase/decrease size between facets
                  plot.title = element_text(lineheight = 1 ), # 
                  panel.grid.major = element_blank(), # remove facet formatting
                  panel.grid.minor = element_blank(),
                  strip.background = element_blank(),
-                 strip.text.x = element_text(size = 10, colour = dgrayL, face = "bold"), # format facet panel text
+                 strip.text.x = element_text(size = 12, colour = dgrayL, face = "bold"), # format facet panel text
                  panel.border = element_rect(colour = "black"),
                  panel.margin = unit(2, "lines")) # Move plot title up
 
@@ -158,38 +158,59 @@ remove(d.particm, d.partic)
 # How do shares of income vary across regions?
 d.incsh <- as.data.frame(select(dsub, sh1agr_wge, sh1nonagr_wge, sh1crop1, sh1livestock, 
           sh1selfemp, sh1transfer, sh1other, date, HHID, stratumP, pcexpend2011, yearInt, 
-          totincome2011, agehead, femhead))
+          totincome2011, agehead, femhead, year))
 
 # - rename a few variables
-names(d.incsh) <- c("Ag-Wage", "Non-Ag", "Crops", "livestock", "Self-Employment", "Transfers", "Other", "date", "id", "Region", "Expenditures", "Year", "Income", "age", "female")
+names(d.incsh) <- c("Ag Wage", "Non-Ag Wage", "Crop Production", "Livestock", "Self-Employment", "Transfers", "Other", "date", "id", "Region", "Expenditures", "Year", "Income", "age", "female", "year")
 d.incsh <- filter(d.incsh, Year != "NA")
 
 
-d.incshm <- melt(d.incsh, id = c("id", "date", "Region", "Expenditures", "Year", "Income", "age", "female"))
+d.incshm <- melt(d.incsh, id = c("id", "date", "Region", "Expenditures", "Year", "Income", "age", "female", "year"))
 d.incshm$Region <- factor(d.incshm$Region, levels = c("West Rural", "East Rural", "North Rural", 
                                                           "Central Rural", "Other Urban", "Kampala"))
 
 d.incshm$female <- factor(d.incshm$female, levels = c(0, 1), 
                           labels = c("Male Headed", "Female Headed"))
 
+# Re-order income shares so that order is: crops, livestock, self-employment, non-ag
+d.incshm$variable <- factor(d.incshm$variable, levels = c("Crop Production", "Livestock", "Self-Employment", 
+                                                      "Non-Ag Wage", "Transfers", "Other", "Ag Wage"))
+
 # 
-p <- ggplot(d.incshm, aes(x = date, y = value, colour = variable)) +
-  stat_smooth(method = "loess", alpha = 0, size = 1.5, span = 1) + facet_wrap(~Region, ncol = 6) +
-  scale_y_continuous(limits = c(-0, 1))+
-  geom_jitter(alpha = 0.1) + theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank()) +
+p <- ggplot(d.incshm, aes(x = Year, y = value, colour = variable)) +
+  stat_smooth(method = "loess", alpha = 0.10, size = 1.5, span = 1) + 
+  facet_wrap(~Region, ncol = 6) +
+  scale_y_continuous(limits = c(0, 1))+ g.spec1 +
+  geom_point(position = "jitter", alpha = 0.075 ) + 
+  theme(legend.position="top", legend.key = element_blank(), legend.title=element_blank()) +
   labs(x = "", y = "Income share \n", # label y-axis and create title
-       title ="", size =13) 
+       title ="", size =13) #+  scale_x_date(breaks = date_breaks("12 months"),labels = date_format("%Y"))
 p
+
+png(filename = "Income.shares.by.time", type = "cairo", units = "in", height = 5.71, width = 9.75,
+    pointsize = 10, res = 300)
+p
+dev.off()
 
 
 # Self-employment income shares constitute the largest value for the highest earners
+d.incshm$lnincome <- log(d.incshm$Income)
+
 pp <- ggplot(d.incshm, aes(x = Income, y = value, colour = variable)) +
-  stat_smooth(method = "loess", alpha = 0.0, size = 1.5, span = 1) + 
-  scale_y_continuous(limits = c(-0, 1)) + scale_x_log10() +
-  geom_jitter(alpha=0.15) + facet_wrap(~Region, ncol = 3) +
+  stat_smooth(method = "loess", alpha = 0.10, size = 1.25, span = 1) + 
+  scale_y_continuous(limits = c(-0, 1)) + g.spec1 + scale_x_log10() +
+  geom_jitter(alpha=0.075) + facet_wrap(~Region, ncol = 3) +
   theme(legend.position = "top", legend.title=element_blank(), panel.border = element_blank(), legend.key = element_blank()) +
-  labs(x = "Total Income", y = "Income share \n")
+  labs(x = "Total Income (log scale Shillings)", y = "Income share \n")
 pp
+
+png(filename = "Income.shares.v.income.png", type = "cairo", units = "in", height = 5.0, width = 9.63,
+    pointsize = 6, res = 300)
+p
+dev.off()
+
+
+
 
 # These patterns hold across time
 pp <- ggplot(d.incshm, aes(x = Income, y = value, colour = variable)) +
@@ -254,8 +275,8 @@ remove(d.inc, d.incm, d.incsh, d.incshm)
 
 
 # Finally, look at specialization typologies and have they evolve over time
-d.spec <- as.data.frame(select(dsub, fhh, fmhh, lhh, mhh, divhh, date, HHID, stratumP, pcexpend2011, yearInt, totincome2011, agehead, femhead))
-names(d.spec) <- c("Farm", "Farm-Market", "Wages", "Migration", "Diversified" , "date", "id", "Region", "Expenditures", "Year", "Income", "age", "female")
+d.spec <- as.data.frame(select(dsub, fhh, lhh, mhh, divhh, date, HHID, stratumP, pcexpend2011, yearInt, totincome2011, agehead, femhead))
+names(d.spec) <- c("Farm", "Labor (waged)", "Migration", "Diversified" , "date", "id", "Region", "Expenditures", "Year", "Income", "age", "female")
 d.spec <- filter(d.spec, Year != "NA")
 d.spec$female <- factor(d.spec$female, levels = c(0, 1), 
                          labels = c("Male Headed", "Female Headed"))
@@ -265,25 +286,27 @@ d.specm <- melt(d.spec, id = c("id", "date", "Region", "Expenditures", "Year", "
 d.specm$Region <- factor(d.specm$Region, levels = c("West Rural", "East Rural", "North Rural", 
                                                       "Central Rural", "Other Urban", "Kampala"))
 
+
+
 # --- Special instructions: wanted to bring each plot to the top, so first use the factor
 # command to reorder, then apply manual scale colors (Set 2) to make all gray except var of interest.
 
-d.specm$variable <- factor(d.specm$variable, levels = c("Farm-Market", "Migration", "Farm",
-                                                        "Wages", "Diversified"))
+d.specm$variable <- factor(d.specm$variable, levels = c("Farm", "Diversified", "Labor (waged)",
+                                                        "Migration"))
 
 p <- ggplot(d.specm, aes(x = Year, y = value, colour = variable)) +
-  stat_smooth(method = "loess", alpha = 0.0, size = 1.5, span = 1, se = TRUE)+ 
-  facet_wrap(~Region, ncol = 6) +
+  stat_smooth(method = "loess", alpha = 0.125, size = 1.5, span = 1, se = TRUE)+ 
+  facet_wrap(~Region, ncol = 6) + g.spec1+
   scale_y_continuous(limits = c(-0, 1))+
-  geom_jitter(alpha = 0.0, position = position_jitter(height = 0.05)) +
+  geom_jitter(alpha = 0.10, position = position_jitter(height = 0.075)) +
   theme(legend.position = "top", legend.key=element_blank(), legend.title = element_blank(),
         panel.background = element_rect(fill = "white"), # Make background white 
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(), # remove facet formatting
         panel.grid.minor = element_blank(),
         strip.background = element_blank()) +
-  labs(x = "", y = "Percent of households specializing in activity") +
-  scale_color_manual(values=c("#A6D854", "#E78AC3", "#66C2A5", "#FC8D62", "#8DA0CB"))
+  labs(x = "", y = "Percent of households specializing in activity \n") #+
+  #scale_color_manual(values=c("#A6D854", "#E78AC3", "#66C2A5", "#FC8D62", "#8DA0CB"))
 p
 # -- List color brewer colors to be used
 brewer.pal(8, "Set2")

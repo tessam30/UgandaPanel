@@ -33,6 +33,16 @@ la def hlth 0 "None" 1 "Government facility" 2 "Private facility" /*
 */ 3 "Pharmacy" 4 "Other"
 la val hlthCons hlth
 
+* Other typology for consultation
+g hlthCons2 = .
+replace hlthCons2 = 1 if inlist(h5q10, 1, 2, 3, 4)
+replace hlthCons2 = 2 if inlist(h5q10, 5, 6, 7, 8, 9)
+replace hlthCons2 = 3 if inlist(h5q10, 10, 11, 12, 13, 96)
+
+la def hlthw 1 "Public" 2 "Private" /*
+*/ 3 "Other"
+la val hlthCons2 hlthw
+
 clonevar distFacility = h5q11
 
 * Total costs for household due to illness
@@ -67,21 +77,25 @@ merge 1:1 HHID PID using "$pathout/hhchar_ind_2009.dta
 * Keep individuals matching in both data sets
 keep if _merge == 3
 
+* Merge with individual data containing demographic info
+merge 1:1 HHID PID using "$wave1/GSEC2.dta", gen(indiv)
+
 * Save data and move to next module
 save "$pathout/illness_I_2009.dta", replace
 restore
 
 * Create binaries for each type of treatment sought
 tab hlthCons, gen(treatment)
+tab hlthCons2, gen(hlthConsType)
 
 * Keep household-level vars and collapse down
-ds(PID h5* hlthCons medCostsI), not
+ds(PID h5* hlthCons hlthCons2 medCostsI), not
 keep `r(varlist)'
 
-qui include "$pathdo2/copylabels.do"
+qui include "$pathdo/copylabels.do"
 ds(HHID), not
 collapse (max) `r(varlist)', by(HHID)
-qui include "$pathdo2/attachlabels.do"
+qui include "$pathdo/attachlabels.do"
 
 * Recode distance to facilty to be great then 100
 recode distFacility (100/1500 = 100)

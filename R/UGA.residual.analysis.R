@@ -40,7 +40,7 @@ d2009$lon <- jitgps$lon
 #d2009 <- filter(d2009, FCS != "NA")
 
 # Fit a GLM on hazard shocks
-hazardGLM <- glm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + 
+hazardGLM <- lm(hazardShk ~ femhead + agehead + ageheadsq + marriedHohp + gendMix + 
                    mixedEth + hhsize +  youth15to24 + depRatio + mlabor + 
                    flabor + literateHoh + literateSpouse + educHoh + landless + 
                    agwealth + wealthindex_rur + infraindex + hhmignet + stratumP + monthInt, data = d2009, 
@@ -55,9 +55,9 @@ coefplot(hazardGLM)
 with(hazardGLM, null.deviance - deviance)
 with(hazardGLM, df.null - df.residual)
 with(hazardGLM, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
--
 
-
+# Check residuals for spatial auto-correlation
+lm.morantest(hazardGLM, nb2listw(nb, style = "W"))
 
 
 
@@ -89,4 +89,5 @@ spat.corr.test <- function(x, n)
   }
 
 # Call function for various arguments
-spat.corr.test("FCS", 999)
+spat.corr.test("hazardShk", 999)
+lm.morantest(hazardGLM, nb2listw(nb, style = "W"))
