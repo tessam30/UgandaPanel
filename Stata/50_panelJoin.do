@@ -213,7 +213,7 @@ egen stutTot = total(stunting), by(stratumP year)
 g pctstuntStat = stunting / stutTot
 export  delimited using "$pathexport\UGA_201505_ind_stunt.csv", replace
 restore
-
+bob
 export delimited using "$pathexport\UGA_201504_ind_all.csv", replace
 
 * Make graphs of malnutrition indicators
