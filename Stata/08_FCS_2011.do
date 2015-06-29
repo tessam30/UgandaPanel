@@ -107,7 +107,7 @@ forvalues i = 1/`n' {
   9) Milk and milk products (x)
   10) Oils an fats 
   11) Sweets*
-  12) Apices condiments and beverages	*/
+  12) Spices condiments and beverages	*/
   
 local dietDiv cereal starches fruit veg pulse sugar milk
 foreach x of local dietDiv {

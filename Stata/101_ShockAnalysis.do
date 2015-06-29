@@ -62,8 +62,8 @@ foreach x of varlist anyshock hazardShk healthShk goodcope badcope {
 est clear
 set more off
 * First fit hazard Shock model for all rural and the all regions
-eststo Rural09, title("Rural 2009"): logit tot $hhchar $agechar $educhar $wealth $geo $month /*
-*/ $ageco region3 region5 region6 if year==2009 & urban==0, robust or
+eststo Rural09, title("Rural 2009"): logit badcope $hhchar $agechar $educhar $wealth $geo $month /*
+*/ $ageco region3 region5 region6 if year==2011 & urban==0, robust or
 
 set more off
 local loc Central East North West

@@ -16,7 +16,7 @@ g.spec1 <- theme(legend.position = "top", legend.title=element_blank(),
                  plot.title = element_text(hjust = 0, size = 17, face = "bold"), # Adjust plot title
                  panel.background = element_rect(fill = "white"), # Make background white 
                  panel.grid.major = element_blank(), panel.grid.minor = element_blank(), #remove grid    
-                 axis.text.y = element_text(hjust = -0.5, size = 14, colour = dgrayL), #soften axis text
+                 axis.text.y = element_text(hjust =  0, size = 14, colour = dgrayL), #soften axis text
                  axis.text.x = element_text(hjust = .5, size = 14, colour = dgrayL),
                  axis.ticks.y = element_blank(), # remove y-axis ticks
                  axis.title.y = element_text(colour = dgrayL),

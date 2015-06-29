@@ -106,7 +106,7 @@ keep $sampling $health $health2 $hhchar $edvars $assets $shocks $shock2 $pcashoc
 drop if latitude == .
 
 bys HHID: gen pwave = _N
-
+b
 * Sort data into panels
 sort HHID year
 destring HHID, gen(hhid)

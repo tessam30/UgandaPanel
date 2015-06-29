@@ -1,4 +1,4 @@
-/*------------------------------------------------------------------------------
+-/*------------------------------------------------------------------------------
 # Name:		03_hhchar_2009
 # Purpose:	Process household characteristics and education characteristics
 # Author:	Tim Essam
