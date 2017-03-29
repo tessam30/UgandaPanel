@@ -119,7 +119,7 @@ drop _merge
 * Generate child height var assuming 24 month cutoff used correctly
 g cheight = h6q28a 
 clonevar ageMonths = h6q04
-la var ageMonths "Age of child (in months)
+la var ageMonths "Age of child (in months)"
 replace cheight = h6q28b if cheight == .
 clonevar gender = h2q3
 
