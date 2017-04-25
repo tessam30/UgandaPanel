@@ -24,6 +24,7 @@ tab h16q00 if h16q01 == 1
 
 * Calculate total shocks per household
 g byte anyshock = (h16q01 ==1)
+g byte rptShock = (h16q01 ==1)
 egen totShock = total(anyshock), by(HHID)
 la var anyshock "household reported at least one shock"
 la var totShock "total shocks"
@@ -132,6 +133,15 @@ la var assetReduc "Asset reduction due to shock"
 la var foodProdReduc "Food production reduction due to shock"
 la var foodPurchReduc "Food purchase reduction due to shock"
 
+* Create bar graph of shocks ranked by severity
+	graph hbar (count) if hazardShk == 1, /*
+	*/ over(h16q4a, sort(1) descending label(labsize(vsmall))) /*
+	*/ blabel(bar) scheme(s2mono) scale(.80) /*
+	*/ by(rptShock, missing cols(2) iscale(*.80) /*
+	*/ title(High food and agricultural input prices are the most common and the most severe shocks/*
+	*/, size(small) color("100 100 100"))) 
+	graph export "$pathgraph\HazCope2009.pdf", as(pdf) replace
+	
 * Collapse data to househld level and merge back with GIS info
 ds (h16* id ), not
 keep `r(varlist)'

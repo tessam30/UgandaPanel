@@ -23,16 +23,18 @@ label list df_SHOCK df_SHOCKRECOVERY
 tab h16q00 if h16q01 == 1
 
 * Calculate total shocks per household
-g byte anyshock = (h16q01 ==1)
-egen totShock = total(anyshock), by(HHID)
-la var anyshock "household reported at least one shock"
-la var totShock "total shocks"
+	g byte anyshock = (h16q01 ==1)
+	g byte rptShock = (h16q01 ==1)
+
+	egen totShock = total(anyshock), by(HHID)
+	la var anyshock "household reported at least one shock"
+	la var totShock "total shocks"
 
 * Quickly get a sense of frequency of shocks at HH-level
-bys HHID: gen id = _n
-tab totShock if id==1, mi
+	bys HHID: gen id = _n
+	tab totShock if id==1, mi
 
-la var totShock "Total shocks"
+	la var totShock "Total shocks"
 
 * Create shock buckets
 /* World Bank classifications
@@ -54,56 +56,56 @@ la var totShock "Total shocks"
 * health	= death of hh member; illness of hh member
 * other 	= loss of house; displacement; other
 * theft		= theft of money/assets/output/etc.. */ 
-g byte ag 		= inlist(h16q00, 104, 105, 106) &  inlist(h16q01, 1) == 1
-g byte aglow	= inlist(h16q00, 107) &  inlist(h16q01, 1) == 1
-g byte conflict = inlist(h16q00, 116) &  inlist(h16q01, 1) == 1
-g byte drought	= inlist(h16q00, 101) &  inlist(h16q01, 1) == 1
-g byte disaster = inlist(h16q00, 102, 103, 117) &  inlist(h16q01, 1) == 1
-g byte financial= inlist(h16q00, 108, 109) &  inlist(h16q01, 1) == 1
-g byte health 	= inlist(h16q00, 110, 111, 112, 113) &  inlist(h16q01, 1) == 1
-g byte other 	= inlist(h16q00, 118, 116) &  inlist(h16q01, 1) == 1
-g byte theft	= inlist(h16q00, 114, 115) &  inlist(h16q01, 1) == 1
+	g byte ag 		= inlist(h16q00, 104, 105, 106) &  inlist(h16q01, 1) == 1
+	g byte aglow	= inlist(h16q00, 107) &  inlist(h16q01, 1) == 1
+	g byte conflict = inlist(h16q00, 116) &  inlist(h16q01, 1) == 1
+	g byte drought	= inlist(h16q00, 101) &  inlist(h16q01, 1) == 1
+	g byte disaster = inlist(h16q00, 102, 103, 117) &  inlist(h16q01, 1) == 1
+	g byte financial= inlist(h16q00, 108, 109) &  inlist(h16q01, 1) == 1
+	g byte health 	= inlist(h16q00, 110, 111, 112, 113) &  inlist(h16q01, 1) == 1
+	g byte other 	= inlist(h16q00, 118, 116) &  inlist(h16q01, 1) == 1
+	g byte theft	= inlist(h16q00, 114, 115) &  inlist(h16q01, 1) == 1
 
-g byte priceShk = inlist(h16q00, 106, 107) &  inlist(h16q01, 1) == 1
-g byte hazardShk = inlist(h16q00, 101, 102, 103, 117) &  inlist(h16q01, 1) == 1
-g byte employShk = inlist(h16q00, 108, 109) &  inlist(h16q01, 1) == 1
-g byte assetShk = inlist(h16q00, 104, 105) &  inlist(h16q01, 1) == 1
-g byte healthShk = inlist(h16q00, 110, 111, 112, 113) &  inlist(h16q01, 1) == 1
-g byte crimeShk = inlist(h16q00, 114, 115, 116) &  inlist(h16q01, 1) == 1
+	g byte priceShk = inlist(h16q00, 106, 107) &  inlist(h16q01, 1) == 1
+	g byte hazardShk = inlist(h16q00, 101, 102, 103, 117) &  inlist(h16q01, 1) == 1
+	g byte employShk = inlist(h16q00, 108, 109) &  inlist(h16q01, 1) == 1
+	g byte assetShk = inlist(h16q00, 104, 105) &  inlist(h16q01, 1) == 1
+	g byte healthShk = inlist(h16q00, 110, 111, 112, 113) &  inlist(h16q01, 1) == 1
+	g byte crimeShk = inlist(h16q00, 114, 115, 116) &  inlist(h16q01, 1) == 1
 
-la var ag "Agriculture"
-la var aglow "Low ag output prices"
-la var conflict "Conflict"
-la var disaster "Disaster"
-la var financial "Financial"
-la var health "Health"
-la var other "Other"
-la var theft "Theft"
-la var drought "lack of rainfall or drought"
+	la var ag "Agriculture"
+	la var aglow "Low ag output prices"
+	la var conflict "Conflict"
+	la var disaster "Disaster"
+	la var financial "Financial"
+	la var health "Health"
+	la var other "Other"
+	la var theft "Theft"
+	la var drought "lack of rainfall or drought"
 
-la var priceShk "price shocks  (inputs, outputs, food)"
-la var hazardShk "hazard schock (flood, fire, drought, landslide)"
-la var employShk "Employment (jobs, wages)"
-la var assetShk "Assets (house, land, livestock)"
-la var healthShk "Health (death, illness)"
-la var crimeShk "Crime & Safety (theft, violence)"
+	la var priceShk "price shocks  (inputs, outputs, food)"
+	la var hazardShk "hazard schock (flood, fire, drought, landslide)"
+	la var employShk "Employment (jobs, wages)"
+	la var assetShk "Assets (house, land, livestock)"
+	la var healthShk "Health (death, illness)"
+	la var crimeShk "Crime & Safety (theft, violence)"
 
 recode h16q02b (16 = 12)
 * How long did each shock last (taking max value)
-egen priceLgth  = max(h16q02b) if inlist(h16q00, 106, 107)==1 &  inlist(h16q01, 1) == 1, by(HHID)
-egen hazardLgth = max(h16q02b) if inlist(h16q00, 101, 102, 103, 117) &  inlist(h16q01, 1) == 1, by(HHID)
-egen employLgth = max(h16q02b) if inlist(h16q00, 108, 109) &  inlist(h16q01, 1) == 1, by(HHID)
-egen assetLgth  = max(h16q02b) if inlist(h16q00, 104, 105) &  inlist(h16q01, 1) == 1, by(HHID)
-egen healthLgth = max(h16q02b) if inlist(h16q00, 110, 111, 112, 113) &  inlist(h16q01, 1) == 1, by(HHID)
-egen crimeLgth  = max(h16q02b) if inlist(h16q00, 114, 115, 116) &  inlist(h16q01, 1) == 1, by(HHID)
+	egen priceLgth  = max(h16q02b) if inlist(h16q00, 106, 107)==1 &  inlist(h16q01, 1) == 1, by(HHID)
+	egen hazardLgth = max(h16q02b) if inlist(h16q00, 101, 102, 103, 117) &  inlist(h16q01, 1) == 1, by(HHID)
+	egen employLgth = max(h16q02b) if inlist(h16q00, 108, 109) &  inlist(h16q01, 1) == 1, by(HHID)
+	egen assetLgth  = max(h16q02b) if inlist(h16q00, 104, 105) &  inlist(h16q01, 1) == 1, by(HHID)
+	egen healthLgth = max(h16q02b) if inlist(h16q00, 110, 111, 112, 113) &  inlist(h16q01, 1) == 1, by(HHID)
+	egen crimeLgth  = max(h16q02b) if inlist(h16q00, 114, 115, 116) &  inlist(h16q01, 1) == 1, by(HHID)
 
 *label variables
-la var priceLgth "Length of price shocks  (inputs, outputs, food)"
-la var hazardLgth "Length of hazard schock (flood, fire, drought, landslide)"
-la var employLgth "Length of Employment (jobs, wages)"
-la var assetLgth "Length of Assets (house, land, livestock)"
-la var healthLgth "Length of Health (death, illness)"
-la var crimeLgth "Length of Crime & Safety (theft, violence)"
+	la var priceLgth "Length of price shocks  (inputs, outputs, food)"
+	la var hazardLgth "Length of hazard schock (flood, fire, drought, landslide)"
+	la var employLgth "Length of Employment (jobs, wages)"
+	la var assetLgth "Length of Assets (house, land, livestock)"
+	la var healthLgth "Length of Health (death, illness)"
+	la var crimeLgth "Length of Crime & Safety (theft, violence)"
 
 * How did households cope?
 label list df_SHOCKRECOVERY
@@ -117,20 +119,31 @@ label list df_SHOCKRECOVERY
 				expenses, productive asset sales, conumsumption reductions 
 				*/
 				
-g byte goodcope = inlist(h16q4a, 1, 2, 4, 5, 6, 7, 8, 9, 10, 12) &  inlist(h16q01, 1) == 1
-g byte badcope 	= inlist(h16q4a, 3, 13, 14, 15, 11) &  inlist(h16q01, 1) == 1
-g byte incReduc = h16q3a == 1
-g byte assetReduc = h16q3b == 1
-g byte foodProdReduc = h16q3c == 1
-g byte foodPurchReduc = h16q3d == 1
+	g byte goodcope = inlist(h16q4a, 1, 2, 4, 5, 6, 7, 8, 9, 10, 12) &  inlist(h16q01, 1) == 1
+	g byte badcope 	= inlist(h16q4a, 3, 13, 14, 15, 11) &  inlist(h16q01, 1) == 1
+	g byte incReduc = h16q3a == 1
+	g byte assetReduc = h16q3b == 1
+	g byte foodProdReduc = h16q3c == 1
+	g byte foodPurchReduc = h16q3d == 1
 
 * Label variables
-la var goodcope "Good primary coping strategy"
-la var badcope "Bad primary coping strategy"
-la var incReduc "Income reduction due to shock"
-la var assetReduc "Asset reduction due to shock"
-la var foodProdReduc "Food production reduction due to shock"
-la var foodPurchReduc "Food purchase reduction due to shock"
+	la var goodcope "Good primary coping strategy"
+	la var badcope "Bad primary coping strategy"
+	la var incReduc "Income reduction due to shock"
+	la var assetReduc "Asset reduction due to shock"
+	la var foodProdReduc "Food production reduction due to shock"
+	la var foodPurchReduc "Food purchase reduction due to shock"
+
+* Create bar graph of shocks ranked by severity
+	graph hbar (count) if hazardShk == 1, /*
+	*/ over(h16q4a, sort(1) descending label(labsize(vsmall))) /*
+	*/ blabel(bar) scheme(s2mono) scale(.80) /*
+	*/ by(rptShock, missing cols(2) iscale(*.80) /*
+	*/ title(High food and agricultural input prices are the most common and the most severe shocks/*
+	*/, size(small) color("100 100 100"))) 
+	graph export "$pathgraph\HazCope2010.pdf", as(pdf) replace
+
+
 
 * Collapse data to househld level and merge back with GIS info
 ds (h16* id ), not
